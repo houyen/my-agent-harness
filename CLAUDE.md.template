@@ -17,11 +17,13 @@ Prefix mọi lệnh bằng `rtk` (kể cả trong chain `&&`). Không có filter
 - Sửa luật: sửa `policy.yaml`, không sửa code adapter/gen-converters.py.
 - Session mới cần `/hooks reload` (Claude) để hook có hiệu lực.
 
-## KnowledgeLib & Self-Docs Rules (R19–R21)
+## Context Architecture & Memory Boundary
 
-- **Tra cứu (R19)**: Khi tra cứu KnowledgeLib qua MCP (`knowledgelib_search`), dữ liệu quá khứ dùng làm **nền tảng & tham khảo**; AI PHẢI chủ động đối chiếu và bổ sung kiến thức hiện đại của mình.
-- **Chuẩn hóa Self-Docs (R20)**: Khi viết file vào `self-docs/*.md`, bắt buộc có YAML frontmatter chuẩn Canonical (6 trường: `id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) và body không rỗng.
-- **Tự động đồng bộ (R21)**: File `self-docs/` tự động được sanitize (gỡ PII/tên công ty) và đồng bộ vào KnowledgeLib tập trung khi kết thúc phiên hoặc chạy `python3 bin/sync-to-knowledgelib.py`.
+- **Working Memory (Project-Scope)**: Context của agent chỉ nạp memory riêng của dự án này (`CLAUDE.md`, tasks hiện tại, local `self-docs/`). Tuyệt đối KHÔNG nạp toàn bộ dữ liệu hoặc mục lục của kho tri thức khác vào context để tránh ô nhiễm context và cạn token budget.
+- **KnowledgeLib = External Store (On-Demand RAG, R19)**: Tri thức dùng chung nằm ngoài repo tại ChromaDB. Agent chỉ gọi MCP tool `knowledgelib_search(query)` khi câu hỏi cần domain-knowledge đã được index. Dữ liệu trả về chỉ dùng làm **nền tảng & tham khảo**; AI chủ động kết hợp kiến thức hiện đại của mình để giải quyết.
+- **Chuẩn hóa Self-Docs (R20)**: File trong `self-docs/*.md` phải có YAML frontmatter chuẩn Canonical (6 trường: `id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) và body không rỗng.
+- **Tự động đồng bộ (R21)**: File `self-docs/` tự động được sanitize (khử PII/tên công ty) và đồng bộ vào KnowledgeLib tập trung khi kết thúc phiên (`Stop`) hoặc chạy `python3 bin/sync-to-knowledgelib.py`.
+
 
 
 ## Communication style (tuỳ chọn — nếu muốn giảm output token)

@@ -251,10 +251,12 @@ def m_knowledgelib_sync():
             syncer = os.path.join(kl_home, "scripts", "sync_knowledgelib.py")
             if os.path.isfile(syncer):
                 subprocess.run([sys.executable, syncer], cwd=kl_home, capture_output=True, timeout=20)
-            print("[harness R21 self-docs-sync] Đã đồng bộ self-docs vào KnowledgeLib tập trung & cập nhật Memory Index.")
+            print("[harness R21 self-docs-sync] Đã đồng bộ self-docs vào KnowledgeLib tập trung & cập nhật vector index.")
     except Exception:
         pass
     return 0
+
+
 
 
 def main():

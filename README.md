@@ -38,9 +38,11 @@ Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent
 - **R20 self-docs-canonical**: gác cổng ghi file `self-docs/*.md` bắt buộc tuân thủ 6 trường YAML Frontmatter chuẩn (`id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) và body không rỗng.
 - **R21 self-docs-sync**: hook `Stop` tự động sanitize (khử PII/tên công ty) và đẩy tài liệu `self-docs/` về kho KnowledgeLib tập trung, đồng thời rebuild Memory Index. Có thể chạy tay bằng `python3 bin/sync-to-knowledgelib.py`.
 
-**Nguyên tắc vận hành khi tra KnowledgeLib:**
-- Dữ liệu trong KnowledgeLib là kinh nghiệm và ghi chép tác giả đã làm qua → đóng vai trò **nền tảng và tài liệu tham khảo**, KHÔNG bị bó hẹp hay phụ thuộc tuyệt đối (kiến thức có thể cơ bản hoặc đã cũ).
-- AI PHẢI chủ động đối chiếu và bổ sung thêm kiến thức hiện đại, chuyên sâu của AI để tối ưu câu trả lời.
+**Nguyên tắc kiến trúc — On-Demand RAG vs Working Memory:**
+- **Zero Eager Context Ingestion**: Tuyệt đối KHÔNG nạp toàn bộ KnowledgeLib hay mục lục index vào context của agent lúc bắt đầu phiên. Context của agent chỉ dành cho Working Memory của dự án hiện tại (`CLAUDE.md`, context task), tránh ô nhiễm ngữ cảnh và cạn token budget khi kho tri thức phình to.
+- **Pull on-demand (RAG)**: Agent giữ context sạch; chỉ gọi MCP tool `knowledgelib_search` khi gặp câu hỏi domain-knowledge đã được index.
+- Dữ liệu trả về chỉ làm **nền tảng và tham khảo**; AI chủ động đối chiếu và bổ sung thêm kiến thức hiện đại, chuyên sâu của AI để tối ưu câu trả lời.
+
 
 **Di chuyển lên server nhà sau này:** chỉ sửa 1 chỗ — entry `mcpServers.knowledgelib` trong `~/.claude.json` (đổi `command`/`args`/`env` sang cách trỏ tới server mới) — không đụng project nào khác, vì mọi repo đều trỏ chung 1 entry global này.
 

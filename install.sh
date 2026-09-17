@@ -307,7 +307,7 @@ fi
 
 echo ""
 log    "═══════════ TRẠNG THÁI 4 TRỤ ═══════════"
-log    "  1. Harness      ✓ cài/cập nhật   (per-project: hook validate + CI + R1–R19)"
+log    "  1. Harness      ✓ cài/cập nhật   (per-project: hook validate + CI + R1–R21)"
 if [ "$WITH_SKILLS" = 1 ]; then
   log  "  2. Skills       ✓ cài/cập nhật   (GLOBAL ~/.claude/skills, qua npx)"
 else
@@ -319,10 +319,11 @@ else
   warn "  3. llmwiki      — BỎ QUA         → thêm cờ --with-wiki (hoặc --full)"
 fi
 if [ "$WITH_KNOWLEDGELIB" = 1 ]; then
-  log  "  4. KnowledgeLib ✓ nối (R19)      (GLOBAL ~/.claude.json, dùng chung mọi repo)"
+  log  "  4. KnowledgeLib ✓ nối (R19–R21)  (GLOBAL ~/.claude.json, On-Demand RAG, dùng chung mọi repo)"
 else
   warn "  4. KnowledgeLib — BỎ QUA         → thêm cờ --with-knowledgelib (hoặc --full)"
 fi
+
 if [ "$WITH_SKILLS" = 0 ] || [ "$WITH_WIKI" = 0 ] || [ "$WITH_KNOWLEDGELIB" = 0 ]; then
   warn "  ► Muốn CẢ 4 trụ trong 1 lệnh: chạy lại với  --full"
 fi
