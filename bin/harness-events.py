@@ -223,13 +223,45 @@ def m_session_end():
         open(tree, "w", encoding="utf-8").write(out)
     except Exception:
         pass
+def m_knowledgelib_sync():
+    """R21 self-docs-sync: tự động trích xuất & đồng bộ self-docs/ sang KnowledgeLib tập trung."""
+    import subprocess
+    r = root()
+    self_docs_dir = os.path.join(r, "self-docs")
+    if not os.path.isdir(self_docs_dir):
+        return 0
+
+    kl_home = os.environ.get("KNOWLEDGELIB_HOME") or os.path.expanduser("~/Documents/Repo/knowledgelib_data")
+    extractor_script = os.path.join(kl_home, "src", "extract_tech_notes.py")
+    if not os.path.isfile(extractor_script):
+        return 0
+
+    target_dest = os.path.join(kl_home, "self-docs")
+    try:
+        res = subprocess.run(
+            [sys.executable, extractor_script, "--src", self_docs_dir, "--dest", target_dest],
+            capture_output=True, text=True, timeout=25
+        )
+        if res.returncode == 0:
+            # Refresh memory index if memory_loader.py exists
+            loader = os.path.join(kl_home, "src", "memory_loader.py")
+            if os.path.isfile(loader):
+                subprocess.run([sys.executable, loader, "--export"], cwd=kl_home, capture_output=True, timeout=15)
+            # Refresh Chroma vector sync if sync_knowledgelib.py exists
+            syncer = os.path.join(kl_home, "scripts", "sync_knowledgelib.py")
+            if os.path.isfile(syncer):
+                subprocess.run([sys.executable, syncer], cwd=kl_home, capture_output=True, timeout=20)
+            print("[harness R21 self-docs-sync] Đã đồng bộ self-docs vào KnowledgeLib tập trung & cập nhật Memory Index.")
+    except Exception:
+        pass
     return 0
 
 
 def main():
     ev = sys.argv[1] if len(sys.argv) > 1 else ""
     fn = {"stop": m_stop, "audit": m_audit, "session": m_session, "docs": m_docs,
-          "session-end": m_session_end, "knowledgelib": m_knowledgelib}.get(ev)
+          "session-end": m_session_end, "knowledgelib": m_knowledgelib,
+          "knowledgelib-sync": m_knowledgelib_sync}.get(ev)
     try:
         sys.exit(fn() if fn else 0)
     except Exception:
@@ -238,3 +270,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -22,9 +22,9 @@ Cờ:
 
 ## Sửa luật
 
-Sửa `policy.yaml` (R1–R19) → chạy lại `python3 gen-converters.py` (sinh `out/`) hoặc chạy lại `install.sh` (tự gen + cắm).
+Sửa `policy.yaml` (R1–R21) → chạy lại `python3 gen-converters.py` (sinh `out/`) hoặc chạy lại `install.sh` (tự gen + cắm).
 
-## KnowledgeLib (R19)
+## KnowledgeLib & Self-Docs (R19–R21)
 
 KnowledgeLib KHÔNG phải add-on riêng từng repo — là **1 kho tri thức DUY NHẤT dùng chung mọi repo** bạn làm việc, đăng ký GLOBAL ở `~/.claude.json` (`mcpServers.knowledgelib`), không phải project-scoped `.mcp.json`. Cài bằng `--with-knowledgelib` (hoặc `--full`):
 
@@ -34,7 +34,9 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent — đã có entry thì bỏ qua, không đè.
 
-Rule `R19 knowledgelib-nudge` (hook `UserPromptSubmit`, không chặn, mỗi 5 lượt — chỉnh bằng env `LLMWIKI_KNOWLEDGELIB_GATE_EVERY`) nhắc agent gọi tool MCP `knowledgelib_search` khi gặp câu hỏi domain-knowledge.
+- **R19 knowledgelib-nudge**: hook `UserPromptSubmit` nhắc agent tra KnowledgeLib khi cần kiến thức domain.
+- **R20 self-docs-canonical**: gác cổng ghi file `self-docs/*.md` bắt buộc tuân thủ 6 trường YAML Frontmatter chuẩn (`id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) và body không rỗng.
+- **R21 self-docs-sync**: hook `Stop` tự động sanitize (khử PII/tên công ty) và đẩy tài liệu `self-docs/` về kho KnowledgeLib tập trung, đồng thời rebuild Memory Index. Có thể chạy tay bằng `python3 bin/sync-to-knowledgelib.py`.
 
 **Nguyên tắc vận hành khi tra KnowledgeLib:**
 - Dữ liệu trong KnowledgeLib là kinh nghiệm và ghi chép tác giả đã làm qua → đóng vai trò **nền tảng và tài liệu tham khảo**, KHÔNG bị bó hẹp hay phụ thuộc tuyệt đối (kiến thức có thể cơ bản hoặc đã cũ).
@@ -46,8 +48,9 @@ Rule `R19 knowledgelib-nudge` (hook `UserPromptSubmit`, không chặn, mỗi 5 l
 
 ```bash
 bash demo.sh          # 13 case nhanh
-bash test-broad.sh    # 74 case đầy đủ
+bash test-broad.sh    # 80 case đầy đủ (bao gồm R20 canonical)
 ```
+
 
 ## Không mang theo (đặc thù Payroll CTD, không vendor-neutral)
 

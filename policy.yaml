@@ -242,3 +242,56 @@ rules:
     handler: "harness-events.py knowledgelib · bin/harness-events.py::m_knowledgelib. KnowledgeLib MCP server đăng ký GLOBAL (~/.claude.json), không phải per-project."
     blocking: false
 
+  # ── KnowledgeLib self-docs canonical & auto-sync (Phase 7) ──────────────
+  self_docs_canonical:
+    id: R20
+    name: self-docs-canonical
+    kind: require_frontmatter
+    statement: "Tài liệu trong self-docs/ phải tuân thủ chuẩn Canonical KnowledgeLib: có frontmatter gồm 6 trường [id, canonical_question, aliases, entity_type, domain, last_verified] và body không rỗng."
+    enforce_at: [session, repo]
+    target_globs:
+      - "self-docs/**/*.md"
+      - "self-docs/*.md"
+    exclude_basenames:
+      - "MEMORY_INDEX.md"
+      - "00-START-HERE.md"
+      - "README.md"
+      - "document-map.md"
+    require_keys:
+      - id
+      - canonical_question
+      - aliases
+      - entity_type
+      - domain
+      - last_verified
+    valid_entity_types:
+      - concept
+      - rule
+      - runbook
+      - gotchas
+      - architecture_explainer
+      - troubleshooting
+      - how_to
+      - reference
+      - specification
+      - product_comparison
+      - tech_stack
+      - compliance
+      - business_strategy
+      - finance
+      - faq
+    require_body: true
+
+  self_docs_sync:
+    id: R21
+    name: self-docs-sync
+    kind: hook_event
+    statement: "Tự động trích xuất và đồng bộ file self-docs/ sang KnowledgeLib tập trung khi kết thúc phiên hoặc lưu tài liệu. Báo cáo, không chặn."
+    enforce_at: [session]
+    event: Stop
+    event_action: knowledgelib-sync
+    timeout: 30
+    handler: "harness-events.py knowledgelib-sync · bin/harness-events.py::m_knowledgelib_sync"
+    blocking: false
+
+

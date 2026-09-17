@@ -155,7 +155,7 @@ def check_forbid_root(path, rule):
     return None
 
 
-# R9 — file phải có YAML frontmatter parse được + trường require_key không rỗng
+# R9/R20 — file phải có YAML frontmatter parse được + các trường bắt buộc
 def check_require_frontmatter(path, content, rule):
     p = _in_scope(path, rule)
     if p is None:
@@ -163,16 +163,43 @@ def check_require_frontmatter(path, content, rule):
     content = _read(path, content)
     if content is None:
         return None
-    m = re.match(r"^---\s*\n(.*?)\n---\s*(?:\n|$)", content, re.DOTALL)
+    m = re.match(r"^---\s*\n(.*?)\n---\s*(?:\n|$)(.*)$", content, re.DOTALL)
     if not m:
         return f"[{_tag(rule)}] {p} thiếu YAML frontmatter (--- … ---) — {rule.get('statement', '')}"
     try:
         fm = yaml.safe_load(m.group(1)) or {}
     except Exception:
         return f"[{_tag(rule)}] {p} frontmatter không parse được — {rule.get('statement', '')}"
-    key = rule.get("require_key", "type")
-    if not (fm.get(key) if isinstance(fm, dict) else None):
+    if not isinstance(fm, dict):
+        return f"[{_tag(rule)}] {p} frontmatter không phải định dạng YAML key-value mapping — {rule.get('statement', '')}"
+
+    # 1. Hỗ trợ require_keys (danh sách nhiều key bắt buộc, e.g. R20 canonical)
+    req_keys = rule.get("require_keys")
+    if req_keys:
+        missing = []
+        for k in req_keys:
+            val = fm.get(k)
+            if val is None or (isinstance(val, (str, list, dict)) and len(val) == 0):
+                missing.append(k)
+        if missing:
+            return f"[{_tag(rule)}] {p} frontmatter thiếu/rỗng trường: {', '.join(missing)} — {rule.get('statement', '')}"
+
+    # 2. Hỗ trợ require_key đơn lẻ (backward compatibility với R9)
+    key = rule.get("require_key")
+    if key and not fm.get(key):
         return f"[{_tag(rule)}] {p} frontmatter thiếu/để trống '{key}' — {rule.get('statement', '')}"
+
+    # 3. Hỗ trợ valid_entity_types (e.g. R20 canonical enum)
+    valid_types = rule.get("valid_entity_types")
+    if valid_types and fm.get("entity_type") not in valid_types:
+        return f"[{_tag(rule)}] {p} entity_type '{fm.get('entity_type')}' không hợp lệ (hợp lệ: {', '.join(valid_types)}) — {rule.get('statement', '')}"
+
+    # 4. Hỗ trợ require_body (kiểm tra nội dung body markdown sau frontmatter)
+    if rule.get("require_body"):
+        body = m.group(2) if len(m.groups()) >= 2 else ""
+        if not body.strip():
+            return f"[{_tag(rule)}] {p} body markdown trống — {rule.get('statement', '')}"
+
     return None
 
 

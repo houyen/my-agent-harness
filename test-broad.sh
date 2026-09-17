@@ -123,6 +123,14 @@ hk '{"tool_name":"Write","tool_input":{"file_path":"llmwiki/wiki/sources/draft/i
 # R9 NỚI (khớp global): sources/draft cũng cần frontmatter — file có Origin nhưng THIẾU frontmatter → chặn
 hk '{"tool_name":"Write","tool_input":{"file_path":"llmwiki/wiki/sources/draft/q.md","content":"# q\n## Origin\n- x"}}';                       assert 2 "R9 nới: draft có Origin nhưng thiếu frontmatter bị chặn" $?
 
+# ── J. R20 self_docs_canonical ─────────────────────────────────────────
+hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/runbook.md","content":"# Runbook\n\nNo frontmatter"}}'; assert 2 "R20: self-docs thiếu frontmatter bị chặn" $?
+hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/engine/calc.md","content":"---\nid: self-docs/engine/calc\naliases: [calc]\n---\n# Calc"}}'; assert 2 "R20: self-docs thiếu canonical fields bị chặn" $?
+hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/engine/calc.md","content":"---\nid: self-docs/engine/calc\ncanonical_question: How to calculate\naliases: [calc]\nentity_type: invalid_type\ndomain: self-docs > engine\nlast_verified: 2026-09-17\n---\n# Calc"}}'; assert 2 "R20: self-docs entity_type lạ bị chặn" $?
+hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/engine/calc.md","content":"---\nid: self-docs/engine/calc\ncanonical_question: How to calculate\naliases: [calc]\nentity_type: runbook\ndomain: self-docs > engine\nlast_verified: 2026-09-17\n---\n"}}'; assert 2 "R20: self-docs body rỗng bị chặn" $?
+hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/engine/calc.md","content":"---\nid: self-docs/engine/calc\ncanonical_question: How to calculate salary\naliases: [calc salary, engine]\nentity_type: runbook\ndomain: self-docs > engine\nlast_verified: 2026-09-17\n---\n# Calc\n\nValid canonical content."}}'; assert 0 "R20: self-docs đủ chuẩn canonical qua" $?
+hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/MEMORY_INDEX.md","content":"# Index\nNo frontmatter"}}'; assert 0 "R20: MEMORY_INDEX.md miễn trừ" $?
+
 echo
 printf '\033[1mTỔNG: %d test · %d PASS · %d FAIL\033[0m\n' "$T" "$P" "$F"
 [ "$F" = 0 ] || exit 1
