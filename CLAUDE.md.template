@@ -1,0 +1,22 @@
+# Project harness (copy nội dung này vào CLAUDE.md gốc dự án, sau khi chạy install.sh)
+
+## Golden rule — Token optimization (nếu có cài rtk)
+
+Prefix mọi lệnh bằng `rtk` (kể cả trong chain `&&`). Không có filter riêng thì rtk pass-through, luôn an toàn.
+
+## Git Security & Secret Protection
+
+- KHÔNG stage/commit `.env*`, `*.pem`, `*.key`, `*token*`, `*credential*`, `service-account*.json`.
+- KHÔNG `git add .` / `git add -A` / `git commit -a`. Luôn stage file cụ thể.
+- KHÔNG bypass hook bằng `--no-verify`.
+- Check `git status` + `git diff --cached --stat` trước khi commit.
+
+## Harness (bộ này)
+
+- Luật ở `harness/poc-vendor-neutral/policy.yaml` (R1–R18) — agent PHẢI tuân, không tự ý bỏ qua hook chặn.
+- Sửa luật: sửa `policy.yaml`, không sửa code adapter/gen-converters.py.
+- Session mới cần `/hooks reload` (Claude) để hook có hiệu lực.
+
+## Communication style (tuỳ chọn — nếu muốn giảm output token)
+
+Có thể bật caveman mode: nói tắt, bỏ hư từ/lịch sự, giữ nguyên kỹ thuật/code. Bật/tắt bằng câu nói trực tiếp trong session ("caveman mode" / "normal mode"), không phải phần bắt buộc của harness.
