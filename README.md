@@ -34,7 +34,11 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent — đã có entry thì bỏ qua, không đè.
 
-Rule `R19 knowledgelib-nudge` (hook `UserPromptSubmit`, không chặn, mỗi 5 lượt — chỉnh bằng env `LLMWIKI_KNOWLEDGELIB_GATE_EVERY`) nhắc agent gọi tool MCP `knowledgelib_search` trước khi tự bịa cho câu hỏi domain-knowledge đã có unit trong catalog.
+Rule `R19 knowledgelib-nudge` (hook `UserPromptSubmit`, không chặn, mỗi 5 lượt — chỉnh bằng env `LLMWIKI_KNOWLEDGELIB_GATE_EVERY`) nhắc agent gọi tool MCP `knowledgelib_search` khi gặp câu hỏi domain-knowledge.
+
+**Nguyên tắc vận hành khi tra KnowledgeLib:**
+- Dữ liệu trong KnowledgeLib là kinh nghiệm và ghi chép tác giả đã làm qua → đóng vai trò **nền tảng và tài liệu tham khảo**, KHÔNG bị bó hẹp hay phụ thuộc tuyệt đối (kiến thức có thể cơ bản hoặc đã cũ).
+- AI PHẢI chủ động đối chiếu và bổ sung thêm kiến thức hiện đại, chuyên sâu của AI để tối ưu câu trả lời.
 
 **Di chuyển lên server nhà sau này:** chỉ sửa 1 chỗ — entry `mcpServers.knowledgelib` trong `~/.claude.json` (đổi `command`/`args`/`env` sang cách trỏ tới server mới) — không đụng project nào khác, vì mọi repo đều trỏ chung 1 entry global này.
 

@@ -234,10 +234,11 @@ rules:
     id: R19
     name: knowledgelib-nudge
     kind: hook_event
-    statement: "Mỗi N prompt (default 5): nhắc agent cân nhắc gọi MCP tool knowledgelib_search TRƯỚC khi tự bịa cho câu hỏi domain-knowledge (đã có unit trong catalog KnowledgeLib — 1 kho DUY NHẤT dùng chung mọi repo, không phải bản riêng của repo này). Báo cáo, không chặn."
+    statement: "Mỗi N prompt (default 5): nhắc agent cân nhắc gọi MCP tool knowledgelib_search khi gặp câu hỏi domain-knowledge. NGUYÊN TẮC: KnowledgeLib là dữ liệu user đã làm qua, dùng làm nền và tài liệu tham khảo, KHÔNG phụ thuộc tuyệt đối (có thể là kiến thức cơ bản hoặc đã cũ) — AI PHẢI chủ động đối chiếu và bổ sung thêm kiến thức hiện đại, chuyên sâu của AI. Báo cáo, không chặn."
     enforce_at: [session]
     event: UserPromptSubmit
     event_action: knowledgelib
     timeout: 10
     handler: "harness-events.py knowledgelib · bin/harness-events.py::m_knowledgelib. KnowledgeLib MCP server đăng ký GLOBAL (~/.claude.json), không phải per-project."
     blocking: false
+

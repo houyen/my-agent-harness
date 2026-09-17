@@ -153,7 +153,8 @@ def m_docs():
 
 def m_knowledgelib():
     """R19 knowledgelib-nudge: mỗi N prompt, nhắc agent tra KnowledgeLib (MCP global,
-    dùng chung mọi repo) trước khi tự bịa cho câu hỏi domain-knowledge. Không chặn."""
+    dùng chung mọi repo) trước khi tự bịa cho câu hỏi domain-knowledge. Không chặn.
+    Nguyên tắc: KnowledgeLib là dữ liệu tham khảo/nền tảng, AI chủ động bổ sung kiến thức."""
     every = int(os.environ.get("LLMWIKI_KNOWLEDGELIB_GATE_EVERY", "5") or 5)
     try:
         p = os.path.join(_audit_dir(), ".knowledgelib-gate.json")
@@ -164,10 +165,11 @@ def m_knowledgelib():
         c += 1
         json.dump({"n": c}, open(p, "w"))
         if every > 0 and c % every == 0:
-            print(f"[harness R19 knowledgelib-nudge] Đã qua {every} lượt. Nếu câu hỏi sắp trả lời thuộc "
-                  f"domain-knowledge đã index (baby/compliance/finance/software/...), CÂN NHẮC gọi tool MCP "
-                  f"`knowledgelib_search` trước khi tự trả lời từ trí nhớ — KnowledgeLib là kho tri thức "
-                  f"dùng chung mọi repo, không riêng repo này.")
+            print(f"[harness R19 knowledgelib-nudge] Đã qua {every} lượt prompt. Khi câu hỏi cần domain-knowledge: "
+                  f"gọi MCP `knowledgelib_search` lấy dữ liệu tham khảo. "
+                  f"NGUYÊN TẮC: KnowledgeLib là dữ liệu/kinh nghiệm tác giả đã làm qua, dùng làm nền/tham khảo chứ "
+                  f"KHÔNG cứng nhắc base hoàn toàn vào đó (có thể là kiến thức basic hoặc đã cũ); "
+                  f"AI PHẢI chủ động kết hợp và bổ sung thêm kiến thức chuyên sâu/cập nhật của AI.")
     except Exception:
         pass
     return 0

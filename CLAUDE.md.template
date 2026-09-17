@@ -13,10 +13,17 @@ Prefix mọi lệnh bằng `rtk` (kể cả trong chain `&&`). Không có filter
 
 ## Harness (bộ này)
 
-- Luật ở `harness/poc-vendor-neutral/policy.yaml` (R1–R18) — agent PHẢI tuân, không tự ý bỏ qua hook chặn.
+- Luật ở `harness/poc-vendor-neutral/policy.yaml` (R1–R19) — agent PHẢI tuân, không tự ý bỏ qua hook chặn.
 - Sửa luật: sửa `policy.yaml`, không sửa code adapter/gen-converters.py.
 - Session mới cần `/hooks reload` (Claude) để hook có hiệu lực.
+
+## KnowledgeLib Principle (R19)
+
+Khi tra cứu KnowledgeLib qua MCP (`knowledgelib_search`):
+- Dữ liệu trong KnowledgeLib là tài liệu, kinh nghiệm tác giả đã làm qua → dùng làm **nền tảng và tham khảo**, KHÔNG cứng nhắc base hoàn toàn vào đó (có thể là kiến thức cơ bản hoặc đã cũ).
+- AI PHẢI chủ động kết hợp kiến thức nền từ KnowledgeLib với kiến thức hiện đại, chuyên sâu của AI để đưa ra câu trả lời / giải pháp tối ưu nhất.
 
 ## Communication style (tuỳ chọn — nếu muốn giảm output token)
 
 Có thể bật caveman mode: nói tắt, bỏ hư từ/lịch sự, giữ nguyên kỹ thuật/code. Bật/tắt bằng câu nói trực tiếp trong session ("caveman mode" / "normal mode"), không phải phần bắt buộc của harness.
+
