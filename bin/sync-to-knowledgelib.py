@@ -57,7 +57,9 @@ def main():
             subprocess.run([sys.executable, loader, "--export"], cwd=kl_home)
 
         # Refresh vector sync
-        syncer = os.path.join(kl_home, "scripts", "sync_knowledgelib.py")
+        syncer = os.path.join(kl_home, "src", "sync_knowledgelib.py")
+        if not os.path.isfile(syncer):
+            syncer = os.path.join(kl_home, "scripts", "sync_knowledgelib.py")
         if os.path.isfile(syncer):
             print("Syncing ChromaDB vector index...")
             subprocess.run([sys.executable, syncer], cwd=kl_home)

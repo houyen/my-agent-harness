@@ -248,7 +248,9 @@ def m_knowledgelib_sync():
             if os.path.isfile(loader):
                 subprocess.run([sys.executable, loader, "--export"], cwd=kl_home, capture_output=True, timeout=15)
             # Refresh Chroma vector sync if sync_knowledgelib.py exists
-            syncer = os.path.join(kl_home, "scripts", "sync_knowledgelib.py")
+            syncer = os.path.join(kl_home, "src", "sync_knowledgelib.py")
+            if not os.path.isfile(syncer):
+                syncer = os.path.join(kl_home, "scripts", "sync_knowledgelib.py")
             if os.path.isfile(syncer):
                 subprocess.run([sys.executable, syncer], cwd=kl_home, capture_output=True, timeout=20)
             print("[harness R21 self-docs-sync] Đã đồng bộ self-docs vào KnowledgeLib tập trung & cập nhật vector index.")
