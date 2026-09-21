@@ -2,12 +2,12 @@
 
 Personal Minimal Viable Agent Harness. Vendor-neutral: 1 policy.yaml → gen-converters.py sinh wiring cho Claude / opencode / Cursor / Codex / Kiro / CI / pre-commit.
 
-Nguồn gốc: trích từ `harness/poc-vendor-neutral/` (Payroll CTD, 2026-07-16), verify lại standalone 2026-09-17 (demo.sh 13/13, test-broad.sh 74/74 PASS, không dính path/tên công ty).
+Nguồn gốc: trích từ một harness nội bộ, verify lại standalone 2026-09-17 (demo.sh 13/13, test-broad.sh 74/74 PASS).
 
 ## Cài vào 1 dự án bất kỳ
 
 ```bash
-git clone <this-repo> /tmp/my-agent-harness
+git clone --depth 1 https://github.com/houyen/my-agent-harness.git /tmp/my-agent-harness
 bash /tmp/my-agent-harness/install.sh /path/to/target-project
 ```
 
@@ -58,12 +58,17 @@ bash test-broad.sh    # 80 case đầy đủ (bao gồm R20 canonical)
 ```
 
 
-## Không mang theo (đặc thù Payroll CTD, không vendor-neutral)
+## Không mang theo (đặc thù dự án gốc, không vendor-neutral)
 
 - `harness/validators/*.py` (proposal_complete.py, decision_adr.py, no_ai_attribution.py, patterns_guard.py, report_show_path.py) — bản production siết hơn declarative rule ở đây, KHÔNG copy sang vì gắn với llmwiki layout riêng của repo đó.
 - `~/.claude/harness` global engine + `install-harness.sh --global` — cơ chế global-shared riêng của bootstrap cũ (GH#51/council-038), không cần cho bộ minimal này.
-- Skill llmwiki qua `npx skills add rheinmir/setup#orca --global` — cài riêng, không phải phần của harness.
+- Skill llmwiki (`npx skills add <owner>/<repo>#<ref> --global`) — cài riêng, không phải phần của harness. `install.sh --with-skills` cần đặt `SKILLS_REF` tường minh.
 
-## Origin
-- Trích từ `/Users/thaidt/Documents/CTD/Payroll CTD/harness/poc-vendor-neutral/` (harness/foundation.yaml, commit context Payroll CTD)
-- Ngày trích: 2026-09-17
+## Tuỳ chọn tải từ mạng (opt-in, mặc định TẮT)
+Không có gì tự tải/chạy mã từ xa. Chỉ bật khi bạn tự đặt env, trỏ tới nguồn bạn tin cậy:
+- `REPO_RAW=<raw url>` — `install.sh --with-wiki` tải overstack.html/templates và có thể chạy `install-harness.sh --global` từ nguồn đó.
+- `SKILLS_REF=<owner>/<repo>#<ref>` — `install.sh --with-skills`.
+- `HARNESS_REMOTE_POLICY=<raw url policy.yaml>` — hook đầu phiên so policy với bản gốc.
+
+## License
+MIT — dùng, sửa, phân phối lại, kể cả biến thành sản phẩm của riêng bạn. Xem [LICENSE](LICENSE).

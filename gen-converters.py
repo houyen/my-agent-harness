@@ -141,8 +141,8 @@ alwaysApply: true
 name: harness
 on: [pull_request, push]
 env:
-  HARNESS_REPO: https://github.com/Rheinmir/setup.git
-  HARNESS_REF: orca            # pin phiên bản harness: nhánh / tag / commit SHA
+  HARNESS_REPO: https://github.com/houyen/my-agent-harness.git
+  HARNESS_REF: main            # pin phiên bản harness: nhánh / tag / commit SHA
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -181,8 +181,8 @@ permissions:
   contents: write
   pull-requests: write
 env:
-  HARNESS_REPO: https://github.com/Rheinmir/setup.git
-  HARNESS_REF: orca            # pin phiên bản harness: nhánh / tag / commit SHA
+  HARNESS_REPO: https://github.com/houyen/my-agent-harness.git
+  HARNESS_REF: main            # pin phiên bản harness: nhánh / tag / commit SHA
 jobs:
   refresh:
     runs-on: ubuntu-latest
