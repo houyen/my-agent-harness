@@ -2,7 +2,7 @@
 
 Personal Minimal Viable Agent Harness. Vendor-neutral: 1 policy.yaml → gen-converters.py sinh wiring cho Claude / opencode / Cursor / Codex / Kiro / CI / pre-commit.
 
-Nguồn gốc: trích từ một harness nội bộ, verify lại standalone 2026-09-17 (demo.sh 13/13, test-broad.sh 74/74 PASS).
+Nguồn gốc: trích từ một harness tham khảo, verify lại standalone 2026-09-17 (demo.sh 13/13, test-broad.sh 74/74 PASS).
 
 ## Cài vào 1 dự án bất kỳ
 
