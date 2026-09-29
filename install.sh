@@ -76,6 +76,15 @@ if [ -z "$VENDORS" ]; then
 fi
 log "B1 · vendor: $VENDORS"
 
+# ── Ghim HARNESS_REF cho CI: SHA HEAD của repo harness NGUỒN nếu cây sạch + đã có trên remote ──
+# (gen-converters chạy trên bản copy trong dự án đích nên không tự đọc được git của nguồn)
+if [ -z "${HARNESS_REF:-}" ] && git -C "$SRC" rev-parse --show-toplevel >/dev/null 2>&1 \
+   && [ "$(cd "$(git -C "$SRC" rev-parse --show-toplevel)" && pwd -P)" = "$(cd "$SRC" && pwd -P)" ] \
+   && [ -z "$(git -C "$SRC" status --porcelain --untracked-files=no)" ]; then
+  _sha="$(git -C "$SRC" rev-parse HEAD)"
+  if [ -n "$(git -C "$SRC" branch -r --contains "$_sha" 2>/dev/null)" ]; then export HARNESS_REF="$_sha"; log "CI ghim HARNESS_REF=${_sha:0:7}"; fi
+fi
+
 # ── B2. Sinh wiring từ policy ──
 log "B2 · gen-converters → out/"
 ( cd "$DEST" && python3 gen-converters.py >/dev/null )

@@ -37,6 +37,11 @@ def pinned_ref():
     def git(*a):
         return subprocess.run(["git", "-C", HERE, *a], capture_output=True, text=True, timeout=10)
     try:
+        # Chỉ tin git khi HERE chính là gốc repo harness; bản vendored nằm trong repo khác
+        # (toplevel ≠ HERE) → rơi về main, đừng ghim SHA của repo đó.
+        top = git("rev-parse", "--show-toplevel").stdout.strip()
+        if not top or os.path.realpath(top) != os.path.realpath(HERE):
+            return "main"
         if git("status", "--porcelain", "--untracked-files=no").stdout.strip():
             return "main"
         sha = git("rev-parse", "HEAD").stdout.strip()
