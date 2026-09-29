@@ -28,6 +28,22 @@ Sửa `policy.yaml` (R1–R22) → chạy lại `python3 gen-converters.py` (sin
 
 - **R22 orca-browser-only**: hook `PreToolUse` (Bash) chặn (exit 2) lệnh mở trình duyệt mặc định của hệ thống — `open <url|*.html>`, `open -a <browser>`, `xdg-open`, `python -m webbrowser`, `osascript ... open location` — và nhắc dùng browser của Orca (`orca tab create --url ...`). Site chặn browser nhúng (vd Google sign-in) thì in URL cho user tự dán, không tự mở Chrome. Mở khoá tạm: `HARNESS_ALLOW_SYSTEM_BROWSER=1`. Chỉ soi token đầu mỗi đoạn shell nên không chặn nhầm commit message; `sudo -u ... open` là gap đã biết (fail-open).
 
+## Rule code theo ngôn ngữ (rules-pull)
+
+Bộ rule code (Go, JS/TS...) lưu trong knowledgelib dạng KU `software/coding-rules/<lang>-code-rules.md`; harness kéo về từng repo:
+
+```bash
+python3 bin/rules-pull.py --lang js-ts,go --root /path/to/repo [--kl ~/Documents/Repo/knowledgelib_data]
+python3 bin/rules-pull.py --lang go --diff     # xem KU đã đổi gì so với rules.lock, không ghi
+python3 bin/rules-pull.py --lang go --check    # exit 1 nếu repo lệch KU (dùng cho CI)
+python3 bin/rules-pull.py --lang go --wire-claude   # thêm @docs/rules/go.md vào CLAUDE.md
+```
+
+- Sinh `docs/rules/<js|go>.md` (không sửa tay) + `rules.lock` (version + hash từng rule → update luôn có diff).
+- `rules.local.yaml` (repo tự viết, pull không ghi đè): `overrides: [{id, action: disable|severity, severity, reason}]`. **`reason` bắt buộc.**
+- Chưa sinh config lint (eslint/golangci) từ dữ liệu — mới sinh tài liệu; bước sau.
+- Test: `bash test-rules.sh`.
+
 ## KnowledgeLib & Self-Docs (R19–R21)
 
 KnowledgeLib KHÔNG phải add-on riêng từng repo — là **1 kho tri thức DUY NHẤT dùng chung mọi repo** bạn làm việc, đăng ký GLOBAL ở `~/.claude.json` (`mcpServers.knowledgelib`), không phải project-scoped `.mcp.json`. Cài bằng `--with-knowledgelib` (hoặc `--full`):
