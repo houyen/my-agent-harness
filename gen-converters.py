@@ -26,32 +26,6 @@ CLI = "harness/poc-vendor-neutral/bin/llmwiki-validate.py"
 GEN = "# ⚙️  GENERATED FROM policy.yaml — đừng sửa tay; sửa policy.yaml rồi chạy gen-converters.py"
 
 
-def pinned_ref():
-    """Ref cho CI clone harness. Ưu tiên env HARNESS_REF; không có thì ghim SHA HEAD của
-    chính repo harness này NẾU cây sạch và SHA đã có trên remote (CI clone được);
-    ngược lại rơi về 'main' (nhánh chạy, không ghim) để CI không trỏ vào SHA không tồn tại."""
-    env = os.environ.get("HARNESS_REF")
-    if env:
-        return env
-    import subprocess
-    def git(*a):
-        return subprocess.run(["git", "-C", HERE, *a], capture_output=True, text=True, timeout=10)
-    try:
-        # Chỉ tin git khi HERE chính là gốc repo harness; bản vendored nằm trong repo khác
-        # (toplevel ≠ HERE) → rơi về main, đừng ghim SHA của repo đó.
-        top = git("rev-parse", "--show-toplevel").stdout.strip()
-        if not top or os.path.realpath(top) != os.path.realpath(HERE):
-            return "main"
-        if git("status", "--porcelain", "--untracked-files=no").stdout.strip():
-            return "main"
-        sha = git("rev-parse", "HEAD").stdout.strip()
-        if sha and git("branch", "-r", "--contains", sha).stdout.strip():
-            return sha
-    except Exception:
-        pass
-    return "main"
-
-
 def write(rel, content):
     path = os.path.join(OUT, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -159,17 +133,13 @@ alwaysApply: true
           f"> Kiro steering hay bị bỏ qua → NHẮC thôi. Đảm bảo thật ở CI.\n")
 
     # ---- 5. SÀN: CI (gọi CLI files mode = layer repo) ----
-    # Repo downstream KHÔNG mang engine — runner fetch harness đúng HARNESS_REF (mặc định ghim SHA,
-    # xem pinned_ref()) rồi chạy validator thẳng từ bản clone (my-agent-harness không có
-    # install-harness.sh; bản cũ gọi script đó nên CI đỏ khi trỏ về repo này). Đây là SÀN đảm bảo —
-    # không fail-open: clone lỗi thì CI đỏ đúng nghĩa (mất sàn phải thấy được).
-    REF = pinned_ref()
+    # CI chạy validator ĐÃ VENDORED trong repo (install.sh B0 luôn copy lõi vào harness/poc-vendor-neutral/).
+    # Không clone repo harness: repo này private nên runner không clone được (bài học CI đỏ 2026-09-29),
+    # và bản vendored chính là phiên bản đã cài/commit → ghim phiên bản bằng chính git của repo đích.
+    # Đây là SÀN đảm bảo — không fail-open: thiếu engine thì CI đỏ đúng nghĩa.
     ci = f"""# {GEN.lstrip('# ')}
 name: harness
 on: [pull_request, push]
-env:
-  HARNESS_REPO: https://github.com/houyen/my-agent-harness.git
-  HARNESS_REF: {REF}            # pin phiên bản harness: SHA (mặc định) / tag / nhánh
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -179,17 +149,12 @@ jobs:
       - uses: actions/setup-python@v5
         with: {{ python-version: '3.x' }}
       - run: pip install pyyaml
-      - name: clone harness (pin theo HARNESS_REF) — validator chạy thẳng từ bản clone
-        run: |
-          git init -q "$RUNNER_TEMP/harness-src"
-          git -C "$RUNNER_TEMP/harness-src" fetch --depth 1 "$HARNESS_REPO" "$HARNESS_REF"
-          git -C "$RUNNER_TEMP/harness-src" checkout -q FETCH_HEAD
-      - name: harness validator (layer=repo, từ bản clone) trên file .md đổi
+      - name: harness validator (layer=repo, engine vendored trong repo) trên file .md đổi
         run: |
           base="${{{{ github.event.pull_request.base.sha || github.event.before }}}}"
           files=$(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\\.md$' || true)
           [ -z "$files" ] && {{ echo "no changed .md"; exit 0; }}
-          python3 "$RUNNER_TEMP/harness-src/bin/llmwiki-validate.py" files $files
+          python3 {CLI} files $files
 """
     write("ci/harness.yml", ci)
 
