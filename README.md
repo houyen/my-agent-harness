@@ -41,6 +41,8 @@ python3 bin/rules-pull.py --lang go --wire-claude   # thêm @docs/rules/go.md v�
 
 - Sinh `docs/rules/<js|go>.md` (không sửa tay) + `rules.lock` (version + hash từng rule → update luôn có diff).
 - `rules.local.yaml` (repo tự viết, pull không ghi đè): `overrides: [{id, action: disable|severity, severity, reason}]`. **`reason` bắt buộc.**
+- `rules.local.md` (repo tự viết, pull không ghi đè): ghi chú riêng của repo (stack, quy ước đặc thù); nối nguyên văn vào cuối `docs/rules/<out>.md` dưới heading `## Ghi chú riêng của repo (rules.local.md)`.
+- `rules.lock` theo dõi `local_notes_sha`: sửa hoặc xóa `rules.local.md` làm `--check` báo lệch và `--diff` in `~ rules.local.md`.
 - Chưa sinh config lint (eslint/golangci) từ dữ liệu — mới sinh tài liệu; bước sau.
 - Test: `bash test-rules.sh`.
 

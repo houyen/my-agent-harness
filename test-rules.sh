@@ -99,5 +99,39 @@ else
   echo "  (bỏ qua: chưa có KU thật)"
 fi
 
+echo "── G. rules.local.md ──"
+cat > "$R/rules.local.md" <<'LOC'
+### Stack đặc thù
+- Chỉ dùng TypeScript strict.
+LOC
+$RP --lang go --root "$R" --kl "$KL" >/dev/null 2>&1;              assert 0 "pull với rules.local.md" $?
+grep -q "## Ghi chú riêng của repo (rules.local.md)" "$R/docs/rules/go.md" && g=1 || g=0; assert 1 "doc chứa heading rules.local.md" $g
+grep -q "Chỉ dùng TypeScript strict" "$R/docs/rules/go.md" && g=1 || g=0;                  assert 1 "doc chứa nội dung rules.local.md" $g
+
+echo "- Thêm dòng ghi chú mới." >> "$R/rules.local.md"
+$RP --lang go --root "$R" --kl "$KL" --check >/dev/null 2>&1;      assert 1 "--check lệch khi rules.local.md đổi" $?
+out=$($RP --lang go --root "$R" --kl "$KL" --diff 2>&1)
+echo "$out" | grep -q "~ rules.local.md" && g=1 || g=0;            assert 1 "--diff có dòng ~ rules.local.md" $g
+
+$RP --lang go --root "$R" --kl "$KL" >/dev/null 2>&1;              assert 0 "pull lại sau khi rules.local.md đổi" $?
+$RP --lang go --root "$R" --kl "$KL" --check >/dev/null 2>&1;      assert 0 "--check khớp sau pull lại" $?
+
+rm -f "$R/rules.local.md"
+$RP --lang go --root "$R" --kl "$KL" --check >/dev/null 2>&1;      assert 1 "--check lệch khi xóa rules.local.md" $?
+$RP --lang go --root "$R" --kl "$KL" >/dev/null 2>&1;              assert 0 "pull sau khi xóa rules.local.md" $?
+grep -q "## Ghi chú riêng của repo (rules.local.md)" "$R/docs/rules/go.md" && g=1 || g=0; assert 0 "doc không còn heading rules.local.md" $g
+$RP --lang go --root "$R" --kl "$KL" --check >/dev/null 2>&1;      assert 0 "--check khớp sau pull xóa" $?
+
+python3 -c "import json; d=json.load(open('$R/rules.lock')); [s.pop('local_notes_sha', None) for s in d.get('sets', {}).values()]; json.dump(d, open('$R/rules.lock', 'w'))"
+$RP --lang go --root "$R" --kl "$KL" --check >/dev/null 2>&1;      assert 0 "lock cũ không có local_notes_sha + không có file: --check exit 0" $?
+
+cat > "$R/rules.local.md" <<'LOC'
+Nội dung cố định
+LOC
+cp "$R/rules.local.md" "$TMP/keep_notes.md"
+$RP --lang go --root "$R" --kl "$KL" >/dev/null 2>&1
+cmp -s "$R/rules.local.md" "$TMP/keep_notes.md" && g=1 || g=0;     assert 1 "pull không ghi đè rules.local.md" $g
+rm -f "$R/rules.local.md" "$TMP/keep_notes.md"
+
 echo; printf '\033[1mTỔNG: %d test · %d PASS · %d FAIL\033[0m\n' "$T" "$P" "$F"
 [ "$F" -eq 0 ]
