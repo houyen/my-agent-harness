@@ -46,6 +46,24 @@ python3 bin/rules-pull.py --lang go --wire-claude   # thêm @docs/rules/go.md v�
 - Chưa sinh config lint (eslint/golangci) từ dữ liệu — mới sinh tài liệu; bước sau.
 - Test: `bash test-rules.sh`.
 
+### Đề xuất rule mới từ repo (rules-propose)
+
+Hàng đợi đề xuất rule từ repo lên KU, duyệt trước khi merge vào knowledgelib:
+
+```bash
+# Thêm đề xuất vào rules-proposals/<lang>/<ID>.yaml
+python3 bin/rules-propose.py add --lang go --id GO-ERR-05 --severity warn --kind review \
+  --statement "..." --evidence "..." --origin "..." [--scope prod,tests] [--root .] [--kl PATH]
+
+# Xem danh sách đề xuất (pending / merged)
+python3 bin/rules-propose.py list [--lang go] [--root .]
+
+# Merge đề xuất vào KU (tăng version, cập nhật last_verified; chỉ chạy khi có duyệt)
+python3 bin/rules-propose.py merge --lang go --id GO-ERR-05 --approve-by "<tên>" [--patch] [--root .] [--kl PATH]
+```
+
+- Test: `bash test-propose.sh`.
+
 ## KnowledgeLib & Self-Docs (R19–R21)
 
 KnowledgeLib KHÔNG phải add-on riêng từng repo — là **1 kho tri thức DUY NHẤT dùng chung mọi repo** bạn làm việc, đăng ký GLOBAL ở `~/.claude.json` (`mcpServers.knowledgelib`), không phải project-scoped `.mcp.json`. Cài bằng `--with-knowledgelib` (hoặc `--full`):
