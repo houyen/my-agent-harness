@@ -20,12 +20,27 @@ Flags:
 - `--no-verify`: skip running demo.sh + test-broad.sh after install
 - `--clean`: remove a previous install first
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
-- `--with-skills`: install a small skill set (global, via `npx skills`, needs `SKILLS_REF`). Default 12 skills: `orca-cli`, `web-crawl`, `agent-reach`, `md-to-html`, `playwright-verify`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Override with `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` installs everything as before
+- `--with-skills`: install the **vendored** skills in `skills/` (offline, MIT, see `skills/NOTICE.md`) into `~/.agents/skills` with symlinks from `~/.claude/skills`. Third-party skills (caveman*, agent-reach) are installed only when you set `SKILLS_REF=<owner>/<repo>#<commit-sha>`
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
 - `--full`: all of the above (wiki, skills, knowledgelib, rtk)
 
 Install is idempotent. CI and pre-commit are always installed (the vendor-neutral floor); per-vendor adapters are installed only for vendors found in the project.
+
+## Bundled skills (`skills/`)
+
+| Skill | Purpose | Bundled script |
+|---|---|---|
+| `impact-check` | Map callers/dependents before changing shared code | — |
+| `safe-change` | Modify shared code without breaking callers | — |
+| `md-to-html` | Render Markdown to standalone HTML | — |
+| `playwright-verify` | Verify with standalone Playwright `.mjs` scripts | — |
+| `skill-provenance` | Record source + sha256 checksum for skills | `scripts/skill-provenance.py` |
+| `web-crawl` | Crawl a web page to Markdown | `scripts/web-crawl.py` |
+
+Source: `rheinmir/setup@5c5cca9` (MIT). Only skills authored by that author are vendored; `caveman*` and `agent-reach` belong to others and are not. `orca-cli` ships with the Orca app. `failure-flywheel` is excluded because its output goes to `llmwiki/wiki/` (rules removed).
+
+Pick a subset with `SKILLS_LIST=web-crawl,safe-change`. A copy that differs from the installed one is only reported, never overwritten.
 
 ## rtk (optional)
 

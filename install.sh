@@ -8,7 +8,7 @@
 #   --vendor           ép danh sách vendor; bỏ qua → tự DÒ (.claude/ · opencode.json · .cursor/ · .kiro/ · .codex)
 #   --no-verify        bỏ bước chạy demo.sh + test-broad.sh
 #   --with-wiki        seed khung llmwiki/
-#   --with-skills      cài bộ skill nhỏ (global, qua npx; SKILLS_LIST=a,b hoặc SKILLS_ALL=1)
+#   --with-skills      cài skill vendored trong skills/ (offline); skill ngoài chỉ khi đặt SKILLS_REF=<repo>#<sha>
 #   --with-knowledgelib  đăng ký MCP KnowledgeLib GLOBAL (~/.claude.json) — 1 kho dùng chung mọi repo.
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
@@ -52,6 +52,7 @@ if [ "$(cd "$SRC" && pwd -P)" != "$(cd "$DEST" && pwd -P)" ]; then
   cp "$SRC/policy.yaml" "$SRC/gen-converters.py" "$SRC/demo.sh" "$SRC/test-broad.sh" "$DEST/"
   cp "$SRC/bin/"*.py "$DEST/bin/"
   for f in install.sh uninstall.sh bootstrap.sh test-rules.sh test-propose.sh README.md DOCS.md; do [ -f "$SRC/$f" ] && cp "$SRC/$f" "$DEST/"; done
+  [ -d "$SRC/skills" ] && { rm -rf "$DEST/skills"; cp -R "$SRC/skills" "$DEST/skills"; }
 else
   log "  · lõi đã ở đúng chỗ (SRC=DEST), bỏ qua copy"
 fi
@@ -300,26 +301,46 @@ if [ "$WITH_WIKI" = 1 ]; then
   fi
 fi
 
-# ── (tùy chọn) cài skill llmwiki (GLOBAL — khác phạm vi với harness theo-project) ──
+# ── (tùy chọn) cài skill (GLOBAL — khác phạm vi với harness theo-project) ──
+# Hai nguồn, tách bạch:
+#  1) VENDORED ($SRC/skills/<tên>/): skill + script đi kèm repo này (MIT, xem skills/NOTICE.md) —
+#     cài offline, không cần mạng/npx. Mặc định cài hết; SKILLS_LIST="a,b" để chọn.
+#  2) EXTERNAL (tác giả khác, không vendor): chỉ cài khi đặt SKILLS_REF — nguồn bạn tin cậy,
+#     NÊN GHIM commit SHA (nhánh có thể đổi/xoá skill: `rheinmir/setup#orca` đã bỏ thư mục skills/).
+#     Danh sách: SKILLS_EXTERNAL (mặc định caveman,caveman-commit,caveman-review,agent-reach).
 if [ "$WITH_SKILLS" = 1 ]; then
-  # Ref cài skill. Không có mặc định: phải đặt SKILLS_REF tường minh (nguồn bạn tin cậy).
-  # Mở override để test được một nhánh khác (canary UAT): không có nó thì cài-từ-nhánh-X vẫn
-  # kéo skill của `orca` → bài UAT chấm bản CŨ rồi báo PASS cho bản MỚI. Cổng nói dối mà vẫn
-  # xanh còn tệ hơn không có cổng. HARNESS_BASE / REPO_RAW đã override được; dòng này thì chưa.
-  SKILLS_REF="${SKILLS_REF:-}"
-  # Chỉ cài bộ skill NHỎ khớp harness 6 rule (không --all: nguồn có ~100 skill llmwiki/design không liên quan).
-  # Override: SKILLS_LIST="a,b,c" · SKILLS_ALL=1 để cài toàn bộ như cũ.
-  SKILLS_LIST="${SKILLS_LIST:-orca-cli,web-crawl,agent-reach,md-to-html,playwright-verify,skill-provenance,failure-flywheel,impact-check,safe-change,caveman,caveman-commit,caveman-review}"
-  if [ "${SKILLS_ALL:-0}" = 1 ]; then SK_ARGS=(--all); else SK_ARGS=(--skill "$SKILLS_LIST"); fi
-  if [ "${SKILLS_ALL:-0}" = 1 ]; then SK_LABEL="tất cả"; else SK_LABEL="$SKILLS_LIST"; fi
-  log "+ cài skill (global, qua npx skills — ref: ${SKILLS_REF:-<chưa đặt>}; $SK_LABEL)"
-  if [ -z "$SKILLS_REF" ]; then
-    warn "  chưa đặt SKILLS_REF (vd SKILLS_REF=<owner>/<repo>#<ref>) — bỏ qua cài skill"
-  elif command -v npx >/dev/null; then
-    npx -y skills add "$SKILLS_REF" --global -y "${SK_ARGS[@]}" 2>&1 | tail -4 | sed 's/^/    /' \
-      || warn "  cài skill lỗi — chạy tay: npx skills add $SKILLS_REF --global --skill $SKILLS_LIST"
+  SK_SRC="$SRC/skills"
+  if [ -d "$SK_SRC" ]; then
+    SK_ALL="$(cd "$SK_SRC" && for d in */; do [ -f "$d/SKILL.md" ] && printf '%s,' "${d%/}"; done)"
+    SKILLS_LIST="${SKILLS_LIST:-${SK_ALL%,}}"
+    log "+ cài skill vendored (global): $SKILLS_LIST"
+    IFS=',' read -r -a _SK <<< "$SKILLS_LIST"
+    for n in "${_SK[@]}"; do
+      [ -f "$SK_SRC/$n/SKILL.md" ] || { warn "  skill '$n' không có trong $SK_SRC — bỏ qua"; continue; }
+      dst="$HOME/.agents/skills/$n"; lnk="$HOME/.claude/skills/$n"
+      if [ -f "$dst/SKILL.md" ]; then
+        if diff -rq "$SK_SRC/$n" "$dst" >/dev/null 2>&1; then log "  · $n đã có, khớp"
+        else warn "  $n đã có nhưng LỆCH bản trong repo — giữ nguyên (cập nhật tay: cp -R $SK_SRC/$n/. $dst/)"; fi
+      else
+        mkdir -p "$dst" && cp -R "$SK_SRC/$n/." "$dst/" && log "  ✓ $n → $dst"
+      fi
+      if [ ! -e "$lnk" ] && [ ! -L "$lnk" ]; then
+        mkdir -p "$HOME/.claude/skills" && ln -s "../../.agents/skills/$n" "$lnk"
+      fi
+    done
   else
-    warn "  không có npx — cài skill tay: npx skills add $SKILLS_REF --global --skill $SKILLS_LIST"
+    warn "  không thấy $SK_SRC — bỏ qua skill vendored"
+  fi
+  SKILLS_REF="${SKILLS_REF:-}"
+  SKILLS_EXTERNAL="${SKILLS_EXTERNAL:-caveman,caveman-commit,caveman-review,agent-reach}"
+  if [ -z "$SKILLS_REF" ]; then
+    warn "  skill ngoài ($SKILLS_EXTERNAL) chưa cài — đặt SKILLS_REF=<owner>/<repo>#<commit-sha> (nguồn tin cậy, ghim SHA)"
+  elif command -v npx >/dev/null; then
+    log "+ cài skill ngoài (ref: $SKILLS_REF): $SKILLS_EXTERNAL"
+    npx -y skills add "$SKILLS_REF" --global -y --skill "$SKILLS_EXTERNAL" 2>&1 | tail -4 | sed 's/^/    /' \
+      || warn "  cài skill ngoài lỗi — chạy tay: npx skills add $SKILLS_REF --global --skill $SKILLS_EXTERNAL"
+  else
+    warn "  không có npx — cài skill ngoài tay: npx skills add $SKILLS_REF --global --skill $SKILLS_EXTERNAL"
   fi
 fi
 
@@ -359,7 +380,7 @@ echo ""
 log    "═══════════ TRẠNG THÁI 4 TRỤ ═══════════"
 log    "  1. Harness      ✓ cài/cập nhật   (per-project: hook validate + CI + 6 rule: R4,R8,R19,R20,R21,R22)"
 if [ "$WITH_SKILLS" = 1 ]; then
-  log  "  2. Skills       ✓ cài/cập nhật   (GLOBAL ~/.claude/skills, qua npx)"
+  log  "  2. Skills       ✓ cài/cập nhật   (GLOBAL ~/.claude/skills; vendored offline, ngoài chỉ khi có SKILLS_REF)"
 else
   warn "  2. Skills       — BỎ QUA         → thêm cờ --with-skills (hoặc --full)"
 fi
