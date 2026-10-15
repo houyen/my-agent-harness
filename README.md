@@ -21,11 +21,16 @@ Cờ:
 - `--with-wiki` — seed khung llmwiki/ (raw/, wiki/..., index.md, log.md). Chỉ là thư mục; hiện KHÔNG còn rule nào gác wiki
 - `--with-skills` — cài bộ skill nhỏ (global, qua `npx skills`, cần `SKILLS_REF`). Mặc định 8 skill: `orca-cli`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Đổi bằng `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` để cài toàn bộ như cũ
 - `--with-knowledgelib` — đăng ký MCP KnowledgeLib GLOBAL (xem mục dưới)
-- `--full` — bật cả 4 (--with-wiki --with-skills --with-knowledgelib)
+- `--with-rtk` — cài hook rtk GLOBAL nếu máy chưa có (`rtk init -g --auto-patch`)
+- `--full` — bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
 
 ## rtk (tuỳ chọn)
 
-`rtk` không phải skill mà là CLI proxy + hook rewrite lệnh để tiết kiệm token. `install.sh` chỉ báo có/không có `rtk`; hook global cài riêng bằng `rtk init -g`. Quy ước prefix `rtk` nằm trong `CLAUDE.md.template`.
+`rtk` không phải skill mà là CLI proxy + hook rewrite lệnh để tiết kiệm token. Hook của rtk là cấu hình **global của máy** (`~/.claude/settings.json`), không có hook theo từng repo.
+
+- Repo mới nhận quy ước "prefix mọi lệnh bằng `rtk`" qua `CLAUDE.md.template`.
+- `install.sh` luôn báo trạng thái rtk. Thêm `--with-rtk` (hoặc `--full`) thì nếu máy chưa có hook sẽ chạy `rtk init -g --auto-patch`; đã có thì bỏ qua.
+- Không dùng `rtk init` không `-g`: nó chỉ nhét ~5KB chỉ dẫn vào CLAUDE.md dự án, trùng với template và `RTK.md` global.
 
 ## Rule đang gác
 

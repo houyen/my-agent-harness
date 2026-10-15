@@ -11,13 +11,14 @@
 #   --with-skills      cài bộ skill nhỏ (global, qua npx; SKILLS_LIST=a,b hoặc SKILLS_ALL=1)
 #   --with-knowledgelib  đăng ký MCP KnowledgeLib GLOBAL (~/.claude.json) — 1 kho dùng chung mọi repo.
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
-#   --full             bật cả 4 (--with-wiki --with-skills --with-knowledgelib)
+#   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
+#   --full             bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
 #
 # Idempotent. CI + pre-commit luôn cài (sàn đảm bảo); adapter chỉ cài cho vendor có mặt.
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # nguồn = poc-vendor-neutral/
-ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; GH_HOME=""
+ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; GH_HOME=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --vendor) VENDORS="${2:-}"; shift 2;;
@@ -26,7 +27,8 @@ while [ $# -gt 0 ]; do
     --with-skills) WITH_SKILLS=1; shift;;
     --with-wiki) WITH_WIKI=1; shift;;
     --with-knowledgelib) WITH_KNOWLEDGELIB=1; shift;;
-    --full) WITH_SKILLS=1; WITH_WIKI=1; WITH_KNOWLEDGELIB=1; shift;;   # đủ 4 trụ: harness + skills + llmwiki + knowledgelib
+    --with-rtk) WITH_RTK=1; shift;;
+    --full) WITH_SKILLS=1; WITH_WIKI=1; WITH_KNOWLEDGELIB=1; WITH_RTK=1; shift;;   # đủ 4 trụ: harness + skills + llmwiki + knowledgelib
     -*) echo "tham số lạ: $1" >&2; exit 1;;
     *) ROOT="$1"; shift;;
   esac
@@ -304,13 +306,22 @@ if [ "$WITH_SKILLS" = 1 ]; then
   fi
 fi
 
-# ── rtk (Rust Token Killer) — KHÔNG phải skill, là CLI proxy + hook; chỉ kiểm có mặt ─────
-# Quy ước "prefix mọi lệnh bằng rtk" nằm trong CLAUDE.md.template. Hook rewrite cài bằng
-# `rtk init -g` (global, đụng ~/.claude) nên install.sh KHÔNG tự chạy — chỉ báo trạng thái.
+# ── rtk (Rust Token Killer) — KHÔNG phải skill, là CLI proxy + hook rewrite ──────────────
+# Hook rtk là cấu hình GLOBAL của máy (~/.claude/settings.json) — không có hook per-repo:
+# `rtk init` không -g chỉ nhét ~5KB chỉ dẫn vào CLAUDE.md dự án (trùng CLAUDE.md.template + RTK.md global).
+# Nên repo mới nhận quy ước prefix rtk qua CLAUDE.md.template; --with-rtk chỉ đảm bảo hook máy có mặt.
 if command -v rtk >/dev/null 2>&1; then
-  log "  ✓ rtk $(rtk --version 2>/dev/null | awk '{print $2}') có sẵn (hook global: rtk init -g nếu chưa cài)"
+  RTK_V="$(rtk --version 2>/dev/null | awk '{print $2}')"
+  if rtk init --show 2>/dev/null | grep -q '^\[ok\] Hook'; then
+    log "  ✓ rtk $RTK_V · hook global đã có"
+  elif [ "$WITH_RTK" = 1 ]; then
+    log "  + rtk $RTK_V · cài hook global (rtk init -g --auto-patch)"
+    rtk init -g --auto-patch 2>&1 | tail -3 | sed 's/^/    /' || warn "  rtk init -g lỗi — chạy tay"
+  else
+    warn "  rtk $RTK_V có nhưng hook global CHƯA cấu hình → thêm --with-rtk (hoặc chạy: rtk init -g)"
+  fi
 else
-  warn "  chưa có rtk — CLAUDE.md.template yêu cầu prefix rtk; cài rồi chạy: rtk init -g"
+  warn "  chưa có rtk — CLAUDE.md.template yêu cầu prefix rtk; cài rồi chạy: install.sh --with-rtk"
 fi
 
 # ── BẢN ĐỒ NĂNG LỰC CHO MODEL (ADR-005) — mắt xích cuối, đừng bỏ ──────────────────────

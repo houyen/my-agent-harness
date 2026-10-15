@@ -22,13 +22,18 @@ Flags:
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
 - `--with-skills`: install a small skill set (global, via `npx skills`, needs `SKILLS_REF`). Default 8 skills: `orca-cli`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Override with `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` installs everything as before
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
-- `--full`: all of the above
+- `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
+- `--full`: all of the above (wiki, skills, knowledgelib, rtk)
 
 Install is idempotent. CI and pre-commit are always installed (the vendor-neutral floor); per-vendor adapters are installed only for vendors found in the project.
 
 ## rtk (optional)
 
-`rtk` is not a skill: it is a CLI proxy plus a command-rewrite hook that saves tokens. `install.sh` only reports whether `rtk` is present; install the global hook separately with `rtk init -g`. The convention to prefix commands with `rtk` lives in `CLAUDE.md.template`.
+`rtk` is not a skill: it is a CLI proxy plus a command-rewrite hook that saves tokens. Its hook is **machine-global** configuration (`~/.claude/settings.json`); there is no per-repo hook.
+
+- New repos get the "prefix every command with `rtk`" convention through `CLAUDE.md.template`.
+- `install.sh` always reports rtk status. With `--with-rtk` (or `--full`) it runs `rtk init -g --auto-patch` when the machine has no hook, and does nothing if it is already there.
+- Avoid plain `rtk init` (no `-g`): it only injects ~5 KB of instructions into the project CLAUDE.md, duplicating the template and the global `RTK.md`.
 
 ## Active rules
 
