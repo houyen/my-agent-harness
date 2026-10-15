@@ -5,7 +5,7 @@ MỘT nguồn (policy.yaml) → nhiều adapter MỎNG. Mỗi file sinh ra có h
 đừng sửa tay — sửa policy.yaml rồi chạy lại. Đây chính là "luồng cài đặt" B2/B3:
 mỗi vendor được ghi WIRING native, KHÔNG vendor nào cần MCP.
 
-Phân tầng (đã kiểm chứng 2026-06-25):
+Phân tầng:
   deny-được, dùng native + CLI : claude (hook→CLI) · opencode (permission.edit:deny) · antigravity (Deny-rule)
   chỉ-nhắc (advisory text)      : cursor · codex · kiro
   phủ MỌI vendor (sàn đảm bảo)  : pre-commit + CI (gọi CLI files mode)
@@ -44,7 +44,7 @@ def main():
 
     print("gen-converters: sinh wiring từ policy.yaml →")
 
-    # ---- 1. Claude — PreToolUse (lõi chặn) + 4 hook sự kiện R3/R4/R8/R10 ----
+    # ---- 1. Claude — PreToolUse (lõi chặn) + hook sự kiện R4/R8/R19/R21/R22 ----
     import json
     EVT = "harness/poc-vendor-neutral/bin/harness-events.py"
     def _ev(c, t=15): return [{"type": "command", "command": c, "timeout": t}]
@@ -52,7 +52,7 @@ def main():
     def _block(f, a): return f'[ -f "$CLAUDE_PROJECT_DIR/{f}" ] && exec python3 "$CLAUDE_PROJECT_DIR/{f}" {a} || exit 0'
     # KHÔNG-CHẶN (PostToolUse/SessionStart/UserPromptSubmit): LUÔN exit 0 — file thiếu/lỗi KHÔNG bao giờ chặn input
     def _info(f, a): return f'python3 "$CLAUDE_PROJECT_DIR/{f}" {a} 2>/dev/null || true'
-    # R3/R4/R8/R10 — SINH hook từ hook_event rules trong policy.yaml (policy-drives-wiring).
+    # R4/R8/R19/R21/R22 — SINH hook từ hook_event rules trong policy.yaml (policy-drives-wiring).
     # Trước đây hardcode; giờ policy là nguồn DUY NHẤT cho cả semantics LẪN wiring.
     # blocking=true → _block (giữ exit 2); false → _info (luôn exit 0). matcher/timeout optional.
     hook_events = {}
@@ -67,7 +67,7 @@ def main():
         if r.get("matcher"):
             entry["matcher"] = r["matcher"]
         hook_events.setdefault(ev, []).append(entry)
-    # PreToolUse = cổng content-rule (validator claude-hook), gộp R1/R2/R5/R7/R9 — giữ hardcode.
+    # PreToolUse = cổng content-rule (validator claude-hook), gồm R20 (+ deny_write nếu có) — giữ hardcode.
     # hook_event PreToolUse từ policy (vd R22) được NỐI SAU, không ghi đè cổng này.
     pre_tool = [{"matcher": "Write|Edit|MultiEdit|Bash", "hooks": _ev(_block(CLI, "claude-hook"))}]
     pre_tool += hook_events.pop("PreToolUse", [])
@@ -75,7 +75,7 @@ def main():
         "_generated": GEN,
         "hooks": {
             "PreToolUse": pre_tool,
-            **hook_events,   # Stop(R3)/PostToolUse(R4)/SessionStart(R8)/UserPromptSubmit(R10) ← policy
+            **hook_events,   # Stop(R21)/PostToolUse(R4)/SessionStart(R8)/UserPromptSubmit(R19) ← policy
         },
     }
     write("claude/settings.snippet.json", json.dumps(claude, ensure_ascii=False, indent=2) + "\n")

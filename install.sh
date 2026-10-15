@@ -190,8 +190,8 @@ if has codex;  then warn "  Codex → thêm nội dung out/codex/AGENTS.snippet.
 # ── B4. Verify ──
 if [ "$VERIFY" = 1 ]; then
   log "B4 · verify"
-  if bash "$DEST/demo.sh" >/dev/null 2>&1; then log "  ✓ demo.sh (13)"; else warn "  demo.sh FAIL — kiểm pyyaml"; fi
-  if bash "$DEST/test-broad.sh" >/dev/null 2>&1; then log "  ✓ test-broad.sh (68)"; else warn "  test-broad.sh FAIL"; fi
+  if bash "$DEST/demo.sh" >/dev/null 2>&1; then log "  ✓ demo.sh"; else warn "  demo.sh FAIL — kiểm pyyaml"; fi
+  if bash "$DEST/test-broad.sh" >/dev/null 2>&1; then log "  ✓ test-broad.sh"; else warn "  test-broad.sh FAIL"; fi
 fi
 
 # ── (tùy chọn) trụ 3: seed khung llmwiki (nhanh, idempotent — không đè file có sẵn) ──
@@ -315,7 +315,7 @@ fi
 
 echo ""
 log    "═══════════ TRẠNG THÁI 4 TRỤ ═══════════"
-log    "  1. Harness      ✓ cài/cập nhật   (per-project: hook validate + CI + R1–R21)"
+log    "  1. Harness      ✓ cài/cập nhật   (per-project: hook validate + CI + 6 rule: R4,R8,R19,R20,R21,R22)"
 if [ "$WITH_SKILLS" = 1 ]; then
   log  "  2. Skills       ✓ cài/cập nhật   (GLOBAL ~/.claude/skills, qua npx)"
 else

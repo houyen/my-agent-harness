@@ -13,7 +13,7 @@ Prefix mọi lệnh bằng `rtk` (kể cả trong chain `&&`). Không có filter
 
 ## Harness (bộ này)
 
-- Luật ở `harness/poc-vendor-neutral/policy.yaml` (R1–R21) — agent PHẢI tuân, không tự ý bỏ qua hook chặn.
+- Luật ở `harness/poc-vendor-neutral/policy.yaml` (6 rule: R4, R8, R19, R20, R21, R22) — agent PHẢI tuân, không tự ý bỏ qua hook chặn.
 - Sửa luật: sửa `policy.yaml`, không sửa code adapter/gen-converters.py.
 - Session mới cần `/hooks reload` (Claude) để hook có hiệu lực.
 
