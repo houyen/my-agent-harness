@@ -8,7 +8,7 @@
 #   --vendor           ép danh sách vendor; bỏ qua → tự DÒ (.claude/ · opencode.json · .cursor/ · .kiro/ · .codex)
 #   --no-verify        bỏ bước chạy demo.sh + test-broad.sh
 #   --with-wiki        seed khung llmwiki/
-#   --with-skills      cài skill vendored trong skills/ (offline); skill ngoài chỉ khi đặt SKILLS_REF=<repo>#<sha>
+#   --with-skills      cài skill đi kèm trong skills/ (offline, SHA256SUMS; SKILLS_LIST=a,b để chọn)
 #   --with-knowledgelib  đăng ký MCP KnowledgeLib GLOBAL (~/.claude.json) — 1 kho dùng chung mọi repo.
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
@@ -302,17 +302,18 @@ if [ "$WITH_WIKI" = 1 ]; then
 fi
 
 # ── (tùy chọn) cài skill (GLOBAL — khác phạm vi với harness theo-project) ──
-# Hai nguồn, tách bạch:
-#  1) VENDORED ($SRC/skills/<tên>/): skill + script đi kèm repo này (MIT, xem skills/NOTICE.md) —
-#     cài offline, không cần mạng/npx. Mặc định cài hết; SKILLS_LIST="a,b" để chọn.
-#  2) EXTERNAL (tác giả khác, không vendor): chỉ cài khi đặt SKILLS_REF — nguồn bạn tin cậy,
-#     NÊN GHIM commit SHA (nhánh có thể đổi/xoá skill: `rheinmir/setup#orca` đã bỏ thư mục skills/).
-#     Danh sách: SKILLS_EXTERNAL (mặc định caveman,caveman-commit,caveman-review,agent-reach).
+# Skill đi kèm repo này ($SRC/skills/<tên>/) — TỰ ĐỦ, cài offline, không cần mạng/npx/nguồn ngoài.
+# Nguồn gốc + giấy phép từng skill: skills/NOTICE.md. Toàn vẹn: skills/SHA256SUMS (kiểm trước khi cài).
+# Mặc định cài hết; SKILLS_LIST="a,b" để chọn.
 if [ "$WITH_SKILLS" = 1 ]; then
   SK_SRC="$SRC/skills"
   if [ -d "$SK_SRC" ]; then
     SK_ALL="$(cd "$SK_SRC" && for d in */; do [ -f "$d/SKILL.md" ] && printf '%s,' "${d%/}"; done)"
     SKILLS_LIST="${SKILLS_LIST:-${SK_ALL%,}}"
+    if [ -f "$SK_SRC/SHA256SUMS" ]; then
+      if (cd "$SK_SRC" && shasum -a 256 -c SHA256SUMS >/dev/null 2>&1); then log "  ✓ skills/SHA256SUMS khớp"
+      else warn "  skills/SHA256SUMS LỆCH — file trong skills/ đã bị sửa so với bản phát hành; kiểm git diff trước khi dùng"; fi
+    fi
     log "+ cài skill vendored (global): $SKILLS_LIST"
     IFS=',' read -r -a _SK <<< "$SKILLS_LIST"
     for n in "${_SK[@]}"; do
@@ -330,17 +331,6 @@ if [ "$WITH_SKILLS" = 1 ]; then
     done
   else
     warn "  không thấy $SK_SRC — bỏ qua skill vendored"
-  fi
-  SKILLS_REF="${SKILLS_REF:-}"
-  SKILLS_EXTERNAL="${SKILLS_EXTERNAL:-caveman,caveman-commit,caveman-review,agent-reach}"
-  if [ -z "$SKILLS_REF" ]; then
-    warn "  skill ngoài ($SKILLS_EXTERNAL) chưa cài — đặt SKILLS_REF=<owner>/<repo>#<commit-sha> (nguồn tin cậy, ghim SHA)"
-  elif command -v npx >/dev/null; then
-    log "+ cài skill ngoài (ref: $SKILLS_REF): $SKILLS_EXTERNAL"
-    npx -y skills add "$SKILLS_REF" --global -y --skill "$SKILLS_EXTERNAL" 2>&1 | tail -4 | sed 's/^/    /' \
-      || warn "  cài skill ngoài lỗi — chạy tay: npx skills add $SKILLS_REF --global --skill $SKILLS_EXTERNAL"
-  else
-    warn "  không có npx — cài skill ngoài tay: npx skills add $SKILLS_REF --global --skill $SKILLS_EXTERNAL"
   fi
 fi
 
@@ -380,7 +370,7 @@ echo ""
 log    "═══════════ TRẠNG THÁI 4 TRỤ ═══════════"
 log    "  1. Harness      ✓ cài/cập nhật   (per-project: hook validate + CI + 6 rule: R4,R8,R19,R20,R21,R22)"
 if [ "$WITH_SKILLS" = 1 ]; then
-  log  "  2. Skills       ✓ cài/cập nhật   (GLOBAL ~/.claude/skills; vendored offline, ngoài chỉ khi có SKILLS_REF)"
+  log  "  2. Skills       ✓ cài/cập nhật   (GLOBAL ~/.claude/skills; offline, có kiểm SHA256SUMS)"
 else
   warn "  2. Skills       — BỎ QUA         → thêm cờ --with-skills (hoặc --full)"
 fi

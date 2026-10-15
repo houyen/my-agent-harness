@@ -20,7 +20,7 @@ Flags:
 - `--no-verify`: skip running demo.sh + test-broad.sh after install
 - `--clean`: remove a previous install first
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
-- `--with-skills`: install the **vendored** skills in `skills/` (offline, MIT, see `skills/NOTICE.md`) into `~/.agents/skills` with symlinks from `~/.claude/skills`. Third-party skills (caveman*, agent-reach) are installed only when you set `SKILLS_REF=<owner>/<repo>#<commit-sha>`
+- `--with-skills`: install the 10 bundled skills in `skills/` into `~/.agents/skills` with symlinks from `~/.claude/skills`. Offline, verified against `skills/SHA256SUMS`, no network or external source. `SKILLS_LIST=a,b` to pick a subset
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
 - `--full`: all of the above (wiki, skills, knowledgelib, rtk)
@@ -29,18 +29,23 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 
 ## Bundled skills (`skills/`)
 
-| Skill | Purpose | Bundled script |
+10 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
+
+| Skill | Purpose | Source (copyright kept) |
 |---|---|---|
-| `impact-check` | Map callers/dependents before changing shared code | — |
-| `safe-change` | Modify shared code without breaking callers | — |
-| `md-to-html` | Render Markdown to standalone HTML | — |
-| `playwright-verify` | Verify with standalone Playwright `.mjs` scripts | — |
-| `skill-provenance` | Record source + sha256 checksum for skills | `scripts/skill-provenance.py` |
-| `web-crawl` | Crawl a web page to Markdown | `scripts/web-crawl.py` |
+| `impact-check` | Map callers/dependents before changing shared code | Rheinmir/setup @5c5cca9, MIT |
+| `safe-change` | Modify shared code without breaking callers | Rheinmir/setup, MIT |
+| `md-to-html` | Render Markdown to standalone HTML | Rheinmir/setup, MIT |
+| `playwright-verify` | Verify with standalone Playwright `.mjs` scripts | Rheinmir/setup, MIT |
+| `skill-provenance` | Record source + sha256 for skills (`scripts/`) | Rheinmir/setup, MIT |
+| `web-crawl` | Crawl a web page to Markdown (`scripts/`) | Rheinmir/setup, MIT |
+| `caveman`, `caveman-commit`, `caveman-review` | Terse voice, commit and review | JuliusBrussee/caveman v4.0.1, Apache-2.0 |
+| `agent-reach` | Internet research across platforms | Panniantong/Agent-Reach, MIT (the `agent-reach` CLI is installed separately) |
 
-Source: `rheinmir/setup@5c5cca9` (MIT). Only skills authored by that author are vendored; `caveman*` and `agent-reach` belong to others and are not. `orca-cli` ships with the Orca app. `failure-flywheel` is excluded because its output goes to `llmwiki/wiki/` (rules removed).
-
-Pick a subset with `SKILLS_LIST=web-crawl,safe-change`. A copy that differs from the installed one is only reported, never overwritten.
+- `caveman*` is a personal preference: installed, but the harness does not switch the mode on (`CLAUDE.md.template` does not force it).
+- `orca-cli` ships with the Orca app; `failure-flywheel` is not bundled because it writes into `llmwiki/wiki/` (rules removed).
+- An existing copy under `~/.agents/skills` is **never overwritten**, only reported as different.
+- Maintenance: after editing files in `skills/`, regenerate checksums with `cd skills && find . -type f ! -name SHA256SUMS | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
 
 ## rtk (optional)
 
@@ -148,15 +153,15 @@ bash test-propose.sh   # rules-propose
 
 - Rules removed on 2026-10-15 (R1–R3, R5–R7, R9–R18: raw/wiki/proposal/ADR/pull-gate/seq-glass/no-ai-attribution) and their production validators (`proposal_complete.py`, `decision_adr.py`, `no_ai_attribution.py`, `patterns_guard.py`, `report_show_path.py`). To recover them, see `git log -- policy.yaml` before the slimming commit.
 - A `~/.claude/harness` global engine and `install-harness.sh --global`: a global-shared mechanism of the older bootstrap, not needed for this minimal set.
-- The llmwiki skill (`npx skills add <owner>/<repo>#<ref> --global`) is installed separately and is not part of the harness. `install.sh --with-skills` needs an explicit `SKILLS_REF`.
 
 ## Optional network fetches (opt-in, OFF by default)
 
 Nothing downloads or runs remote code on its own. These activate only if you set the env var, pointing at a source you trust:
 - `REPO_RAW=<raw url>`: `install.sh --with-wiki` downloads overstack.html / templates and may run `install-harness.sh --global` from that source.
-- `SKILLS_REF=<owner>/<repo>#<ref>`: `install.sh --with-skills`.
 - `HARNESS_REMOTE_POLICY=<raw url of policy.yaml>`: the session-start hook compares your policy with that copy.
 
 ## License
 
 MIT. Use, modify and redistribute freely, including as part of your own product. See [LICENSE](LICENSE).
+
+Exception: skills under `skills/` keep their original authors' licenses (MIT / Apache-2.0); see [skills/NOTICE.md](skills/NOTICE.md).

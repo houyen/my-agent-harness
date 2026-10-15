@@ -19,25 +19,30 @@ Cờ:
 - `--no-verify` — bỏ chạy demo.sh + test-broad.sh sau khi cài
 - `--clean` — gỡ bản cũ trước khi cài
 - `--with-wiki` — seed khung llmwiki/ (raw/, wiki/..., index.md, log.md). Chỉ là thư mục; hiện KHÔNG còn rule nào gác wiki
-- `--with-skills` — cài các skill **vendored** trong `skills/` (offline, MIT, xem `skills/NOTICE.md`) vào `~/.agents/skills` + symlink `~/.claude/skills`. Skill của tác giả khác (caveman*, agent-reach) chỉ cài khi đặt `SKILLS_REF=<owner>/<repo>#<commit-sha>`
+- `--with-skills` — cài 10 skill đi kèm trong `skills/` vào `~/.agents/skills` + symlink `~/.claude/skills`. Offline, kiểm `skills/SHA256SUMS`, không cần mạng hay nguồn ngoài. `SKILLS_LIST=a,b` để chọn
 - `--with-knowledgelib` — đăng ký MCP KnowledgeLib GLOBAL (xem mục dưới)
 - `--with-rtk` — cài hook rtk GLOBAL nếu máy chưa có (`rtk init -g --auto-patch`)
 - `--full` — bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
 
 ## Skill đi kèm (`skills/`)
 
-| Skill | Việc | Script đi kèm |
+10 skill đi kèm repo, **cài offline, không phụ thuộc nguồn ngoài**. Nguồn gốc và giấy phép từng cái nằm ở `skills/NOTICE.md`.
+
+| Skill | Việc | Nguồn (giữ nguyên bản quyền) |
 |---|---|---|
-| `impact-check` | Lập bản đồ nơi gọi / phụ thuộc trước khi sửa code dùng chung | — |
-| `safe-change` | Sửa code dùng chung mà không làm gãy nơi gọi | — |
-| `md-to-html` | Render Markdown thành HTML độc lập | — |
-| `playwright-verify` | Verify bằng script Playwright `.mjs` | — |
-| `skill-provenance` | Ghi nguồn + checksum sha256 cho skill | `scripts/skill-provenance.py` |
-| `web-crawl` | Crawl trang web ra Markdown | `scripts/web-crawl.py` |
+| `impact-check` | Lập bản đồ nơi gọi / phụ thuộc trước khi sửa code dùng chung | Rheinmir/setup @5c5cca9, MIT |
+| `safe-change` | Sửa code dùng chung mà không làm gãy nơi gọi | Rheinmir/setup, MIT |
+| `md-to-html` | Render Markdown thành HTML độc lập | Rheinmir/setup, MIT |
+| `playwright-verify` | Verify bằng script Playwright `.mjs` | Rheinmir/setup, MIT |
+| `skill-provenance` | Ghi nguồn + sha256 cho skill (`scripts/`) | Rheinmir/setup, MIT |
+| `web-crawl` | Crawl trang web ra Markdown (`scripts/`) | Rheinmir/setup, MIT |
+| `caveman`, `caveman-commit`, `caveman-review` | Giọng nén, commit, review ngắn | JuliusBrussee/caveman v4.0.1, Apache-2.0 |
+| `agent-reach` | Tra cứu internet đa nền tảng | Panniantong/Agent-Reach, MIT (cần cài riêng CLI `agent-reach`) |
 
-Nguồn: `rheinmir/setup@5c5cca9` (MIT). Chỉ vendor skill do tác giả đó viết; `caveman*`, `agent-reach` là của người khác nên không vendor. `orca-cli` đi kèm ứng dụng Orca. `failure-flywheel` bị loại vì đầu ra của nó ghi vào `llmwiki/wiki/` (rule đã bỏ).
-
-Chọn một phần: `SKILLS_LIST=web-crawl,safe-change`. Lệch bản so với bản đã cài thì chỉ báo, không đè.
+- `caveman*` chỉ là sở thích cá nhân: cài sẵn nhưng harness không bật mode (`CLAUDE.md.template` không ép).
+- `orca-cli` đi kèm ứng dụng Orca; `failure-flywheel` không đi kèm vì đầu ra ghi vào `llmwiki/wiki/` (rule đã bỏ).
+- Đã có bản khác trong `~/.agents/skills` thì **không đè**, chỉ báo lệch.
+- Bảo trì: sửa file trong `skills/` thì chạy lại `cd skills && find . -type f ! -name SHA256SUMS | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
 
 ## rtk (tuỳ chọn)
 
@@ -146,9 +151,10 @@ bash test-propose.sh   # rules-propose
 Không có gì tự tải/chạy mã từ xa. Chỉ bật khi bạn tự đặt env, trỏ tới nguồn bạn tin cậy:
 
 - `REPO_RAW=<raw url>` — `install.sh --with-wiki` tải overstack.html/templates và có thể chạy `install-harness.sh --global` từ nguồn đó.
-- `SKILLS_REF=<owner>/<repo>#<ref>` — `install.sh --with-skills`.
 - `HARNESS_REMOTE_POLICY=<raw url policy.yaml>` — hook đầu phiên so policy với bản gốc.
 
 ## License
 
 MIT — dùng, sửa, phân phối lại, kể cả biến thành sản phẩm của riêng bạn. Xem [LICENSE](LICENSE).
+
+Ngoại lệ: các skill trong `skills/` giữ giấy phép của tác giả gốc (MIT / Apache-2.0) — xem [skills/NOTICE.md](skills/NOTICE.md).
