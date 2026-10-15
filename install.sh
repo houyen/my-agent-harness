@@ -161,6 +161,23 @@ PY
   else
     warn "  KnowledgeLib → $KL_HOME/src/mcp_server.py không tồn tại, bỏ qua (chỉnh KNOWLEDGELIB_HOME nếu path khác)"
   fi
+  # Skill `knowledgelib` — nguồn là SKILL.md ở gốc repo KnowledgeLib (không nằm trong bộ skill ngoài).
+  # Layout giống `npx skills`: bản thật ở ~/.agents/skills, symlink từ ~/.claude/skills.
+  # Idempotent: đã có thì KHÔNG đè (bản đang dùng có thể do bạn chỉnh); lệch bản chỉ báo.
+  if [ -f "$KL_HOME/SKILL.md" ]; then
+    SK_DST="$HOME/.agents/skills/knowledgelib"; SK_LINK="$HOME/.claude/skills/knowledgelib"
+    if [ -f "$SK_DST/SKILL.md" ]; then
+      if cmp -s "$KL_HOME/SKILL.md" "$SK_DST/SKILL.md"; then log "  · skill knowledgelib đã có, khớp bản trong repo"
+      else warn "  skill knowledgelib đã có nhưng LỆCH bản trong repo — giữ nguyên (cập nhật tay: cp $KL_HOME/SKILL.md $SK_DST/SKILL.md)"; fi
+    else
+      mkdir -p "$SK_DST" && cp "$KL_HOME/SKILL.md" "$SK_DST/SKILL.md" && log "  ✓ skill knowledgelib → $SK_DST"
+    fi
+    if [ ! -e "$SK_LINK" ] && [ ! -L "$SK_LINK" ]; then
+      mkdir -p "$HOME/.claude/skills" && ln -s "../../.agents/skills/knowledgelib" "$SK_LINK" && log "  ✓ symlink $SK_LINK"
+    fi
+  else
+    warn "  skill knowledgelib: không thấy $KL_HOME/SKILL.md, bỏ qua"
+  fi
 fi
 # opencode (permission.edit native — merge tự động)
 if has opencode; then

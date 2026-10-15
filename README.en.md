@@ -107,6 +107,8 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 `KNOWLEDGELIB_HOME` defaults to `~/Documents/Repo/knowledgelib_data`. Idempotent: an existing entry is left alone.
 
+`--with-knowledgelib` also installs the **`knowledgelib` skill** from `$KNOWLEDGELIB_HOME/SKILL.md` (real copy in `~/.agents/skills/knowledgelib`, symlinked from `~/.claude/skills/`). An existing skill is not overwritten; a version mismatch is only reported so you can update it yourself.
+
 - **R19 knowledgelib-nudge**: `UserPromptSubmit` hook reminding the agent to consult KnowledgeLib for domain knowledge.
 - **R20 self-docs-canonical**: gates writes to `self-docs/*.md`, requiring 6 YAML frontmatter fields (`id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) and a non-empty body.
 - **R21 self-docs-sync**: `Stop` hook that sanitizes (strips PII / company names) and pushes `self-docs/` to the central KnowledgeLib, and rebuilds its memory index. Can be run by hand: `python3 bin/sync-to-knowledgelib.py`.

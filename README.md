@@ -99,6 +99,8 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent — đã có entry thì bỏ qua, không đè.
 
+`--with-knowledgelib` còn cài **skill `knowledgelib`** từ `$KNOWLEDGELIB_HOME/SKILL.md` (bản thật ở `~/.agents/skills/knowledgelib`, symlink từ `~/.claude/skills/`). Đã có thì không đè; lệch bản chỉ báo để bạn tự cập nhật.
+
 - **R19 knowledgelib-nudge**: hook `UserPromptSubmit` nhắc agent tra KnowledgeLib khi cần kiến thức domain.
 - **R20 self-docs-canonical**: gác cổng ghi file `self-docs/*.md` bắt buộc tuân thủ 6 trường YAML Frontmatter chuẩn (`id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) và body không rỗng.
 - **R21 self-docs-sync**: hook `Stop` tự động sanitize (khử PII/tên công ty) và đẩy tài liệu `self-docs/` về kho KnowledgeLib tập trung, đồng thời rebuild Memory Index. Có thể chạy tay bằng `python3 bin/sync-to-knowledgelib.py`.
