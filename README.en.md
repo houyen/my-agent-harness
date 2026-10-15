@@ -20,11 +20,15 @@ Flags:
 - `--no-verify`: skip running demo.sh + test-broad.sh after install
 - `--clean`: remove a previous install first
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
-- `--with-skills`: install the llmwiki skill (global, via npx)
+- `--with-skills`: install a small skill set (global, via `npx skills`, needs `SKILLS_REF`). Default 8 skills: `orca-cli`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Override with `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` installs everything as before
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--full`: all of the above
 
 Install is idempotent. CI and pre-commit are always installed (the vendor-neutral floor); per-vendor adapters are installed only for vendors found in the project.
+
+## rtk (optional)
+
+`rtk` is not a skill: it is a CLI proxy plus a command-rewrite hook that saves tokens. `install.sh` only reports whether `rtk` is present; install the global hook separately with `rtk init -g`. The convention to prefix commands with `rtk` lives in `CLAUDE.md.template`.
 
 ## Active rules
 

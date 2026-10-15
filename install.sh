@@ -8,7 +8,7 @@
 #   --vendor           ép danh sách vendor; bỏ qua → tự DÒ (.claude/ · opencode.json · .cursor/ · .kiro/ · .codex)
 #   --no-verify        bỏ bước chạy demo.sh + test-broad.sh
 #   --with-wiki        seed khung llmwiki/
-#   --with-skills      cài skill llmwiki (global, qua npx)
+#   --with-skills      cài bộ skill nhỏ (global, qua npx; SKILLS_LIST=a,b hoặc SKILLS_ALL=1)
 #   --with-knowledgelib  đăng ký MCP KnowledgeLib GLOBAL (~/.claude.json) — 1 kho dùng chung mọi repo.
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --full             bật cả 4 (--with-wiki --with-skills --with-knowledgelib)
@@ -288,15 +288,29 @@ if [ "$WITH_SKILLS" = 1 ]; then
   # kéo skill của `orca` → bài UAT chấm bản CŨ rồi báo PASS cho bản MỚI. Cổng nói dối mà vẫn
   # xanh còn tệ hơn không có cổng. HARNESS_BASE / REPO_RAW đã override được; dòng này thì chưa.
   SKILLS_REF="${SKILLS_REF:-}"
-  log "+ cài bộ skill llmwiki (global, qua npx skills — ref: ${SKILLS_REF:-<chưa đặt>})"
+  # Chỉ cài bộ skill NHỎ khớp harness 6 rule (không --all: nguồn có ~100 skill llmwiki/design không liên quan).
+  # Override: SKILLS_LIST="a,b,c" · SKILLS_ALL=1 để cài toàn bộ như cũ.
+  SKILLS_LIST="${SKILLS_LIST:-orca-cli,skill-provenance,failure-flywheel,impact-check,safe-change,caveman,caveman-commit,caveman-review}"
+  if [ "${SKILLS_ALL:-0}" = 1 ]; then SK_ARGS=(--all); else SK_ARGS=(--skill "$SKILLS_LIST"); fi
+  if [ "${SKILLS_ALL:-0}" = 1 ]; then SK_LABEL="tất cả"; else SK_LABEL="$SKILLS_LIST"; fi
+  log "+ cài skill (global, qua npx skills — ref: ${SKILLS_REF:-<chưa đặt>}; $SK_LABEL)"
   if [ -z "$SKILLS_REF" ]; then
     warn "  chưa đặt SKILLS_REF (vd SKILLS_REF=<owner>/<repo>#<ref>) — bỏ qua cài skill"
   elif command -v npx >/dev/null; then
-    npx -y skills add "$SKILLS_REF" --global --all 2>&1 | tail -4 | sed 's/^/    /' \
-      || warn "  cài skill lỗi — chạy tay: npx skills add $SKILLS_REF --global --all"
+    npx -y skills add "$SKILLS_REF" --global -y "${SK_ARGS[@]}" 2>&1 | tail -4 | sed 's/^/    /' \
+      || warn "  cài skill lỗi — chạy tay: npx skills add $SKILLS_REF --global --skill $SKILLS_LIST"
   else
-    warn "  không có npx — cài skill tay: npx skills add $SKILLS_REF --global --all"
+    warn "  không có npx — cài skill tay: npx skills add $SKILLS_REF --global --skill $SKILLS_LIST"
   fi
+fi
+
+# ── rtk (Rust Token Killer) — KHÔNG phải skill, là CLI proxy + hook; chỉ kiểm có mặt ─────
+# Quy ước "prefix mọi lệnh bằng rtk" nằm trong CLAUDE.md.template. Hook rewrite cài bằng
+# `rtk init -g` (global, đụng ~/.claude) nên install.sh KHÔNG tự chạy — chỉ báo trạng thái.
+if command -v rtk >/dev/null 2>&1; then
+  log "  ✓ rtk $(rtk --version 2>/dev/null | awk '{print $2}') có sẵn (hook global: rtk init -g nếu chưa cài)"
+else
+  warn "  chưa có rtk — CLAUDE.md.template yêu cầu prefix rtk; cài rồi chạy: rtk init -g"
 fi
 
 # ── BẢN ĐỒ NĂNG LỰC CHO MODEL (ADR-005) — mắt xích cuối, đừng bỏ ──────────────────────

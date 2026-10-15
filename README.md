@@ -19,9 +19,13 @@ Cờ:
 - `--no-verify` — bỏ chạy demo.sh + test-broad.sh sau khi cài
 - `--clean` — gỡ bản cũ trước khi cài
 - `--with-wiki` — seed khung llmwiki/ (raw/, wiki/..., index.md, log.md). Chỉ là thư mục; hiện KHÔNG còn rule nào gác wiki
-- `--with-skills` — cài skill llmwiki (global, qua npx)
+- `--with-skills` — cài bộ skill nhỏ (global, qua `npx skills`, cần `SKILLS_REF`). Mặc định 8 skill: `orca-cli`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Đổi bằng `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` để cài toàn bộ như cũ
 - `--with-knowledgelib` — đăng ký MCP KnowledgeLib GLOBAL (xem mục dưới)
 - `--full` — bật cả 4 (--with-wiki --with-skills --with-knowledgelib)
+
+## rtk (tuỳ chọn)
+
+`rtk` không phải skill mà là CLI proxy + hook rewrite lệnh để tiết kiệm token. `install.sh` chỉ báo có/không có `rtk`; hook global cài riêng bằng `rtk init -g`. Quy ước prefix `rtk` nằm trong `CLAUDE.md.template`.
 
 ## Rule đang gác
 
