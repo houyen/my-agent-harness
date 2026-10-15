@@ -292,7 +292,7 @@ if [ "$WITH_SKILLS" = 1 ]; then
   SKILLS_REF="${SKILLS_REF:-}"
   # Chỉ cài bộ skill NHỎ khớp harness 6 rule (không --all: nguồn có ~100 skill llmwiki/design không liên quan).
   # Override: SKILLS_LIST="a,b,c" · SKILLS_ALL=1 để cài toàn bộ như cũ.
-  SKILLS_LIST="${SKILLS_LIST:-orca-cli,skill-provenance,failure-flywheel,impact-check,safe-change,caveman,caveman-commit,caveman-review}"
+  SKILLS_LIST="${SKILLS_LIST:-orca-cli,web-crawl,agent-reach,md-to-html,playwright-verify,skill-provenance,failure-flywheel,impact-check,safe-change,caveman,caveman-commit,caveman-review}"
   if [ "${SKILLS_ALL:-0}" = 1 ]; then SK_ARGS=(--all); else SK_ARGS=(--skill "$SKILLS_LIST"); fi
   if [ "${SKILLS_ALL:-0}" = 1 ]; then SK_LABEL="tất cả"; else SK_LABEL="$SKILLS_LIST"; fi
   log "+ cài skill (global, qua npx skills — ref: ${SKILLS_REF:-<chưa đặt>}; $SK_LABEL)"

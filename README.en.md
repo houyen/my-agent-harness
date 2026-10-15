@@ -20,7 +20,7 @@ Flags:
 - `--no-verify`: skip running demo.sh + test-broad.sh after install
 - `--clean`: remove a previous install first
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
-- `--with-skills`: install a small skill set (global, via `npx skills`, needs `SKILLS_REF`). Default 8 skills: `orca-cli`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Override with `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` installs everything as before
+- `--with-skills`: install a small skill set (global, via `npx skills`, needs `SKILLS_REF`). Default 12 skills: `orca-cli`, `web-crawl`, `agent-reach`, `md-to-html`, `playwright-verify`, `skill-provenance`, `failure-flywheel`, `impact-check`, `safe-change`, `caveman`, `caveman-commit`, `caveman-review`. Override with `SKILLS_LIST=a,b,c`; `SKILLS_ALL=1` installs everything as before
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
 - `--full`: all of the above (wiki, skills, knowledgelib, rtk)
