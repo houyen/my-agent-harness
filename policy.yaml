@@ -20,12 +20,12 @@ rules:
     id: R4
     name: audit-log
     kind: hook_event
-    statement: "Mọi tool-call ghi .claude/audit/audit.jsonl (timestamp) + sinh log.md người-đọc-được. Không chặn."
-    statement_en: "Every Write/Edit is appended to .claude/audit/audit.jsonl and a human-readable log.md. Does not block."
+    statement: "Mọi tool-call Write/Edit/Bash ĐÃ CHẠY ghi .claude/audit/audit.jsonl (timestamp; Bash ghi lệnh ĐÃ CHE secret, tắt bằng HARNESS_AUDIT_NO_BASH=1) + sinh log.md người-đọc-được. Mỗi lần hook CHẶN ghi thêm 1 dòng bằng chứng vào decisions.jsonl (rule, đoạn khớp, hash input/policy/engine). Không chặn."
+    statement_en: "Every executed Write/Edit/Bash call is appended to .claude/audit/audit.jsonl (Bash commands are secret-redacted; disable with HARNESS_AUDIT_NO_BASH=1) plus a human-readable log.md. Every hook block appends an evidence line to decisions.jsonl (rule, matched fragment, input/policy/engine hashes). Does not block."
     enforce_at: [session]
     event: PostToolUse
     event_action: audit
-    matcher: "Write|Edit|MultiEdit"
+    matcher: "Write|Edit|MultiEdit|Bash"
     timeout: 10
     handler: "harness-events.py audit · llmwiki/.claude/hooks/post_tool_use.py"
     blocking: false

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Hook sự kiện cho harness PoC (ngoài PreToolUse/llmwiki-validate):
   stop     R3 index-sync   — chặn kết thúc lượt nếu wiki/index.md lệch file thật (exit 2)
-  audit    R4 log-append   — ghi .claude/audit/audit.jsonl (có timestamp) + sinh .claude/audit/log.md
+  audit    R4 log-append   — ghi .claude/audit/audit.jsonl (Write/Edit: path · Bash: lệnh ĐÃ CHE secret) + log.md
   session  R8 health       — in trạng thái + CHECK DRIFT vs remote (cảnh báo nếu policy lệch)
   docs     R10 docs-gate   — mỗi N prompt: inject directive đề nghị bổ sung docs + gọi /docs-site-macos
   knowledgelib R19         — mỗi N prompt: nhắc tra KnowledgeLib (MCP global) trước khi tự bịa
@@ -13,6 +13,11 @@ import glob
 import json
 import os
 import sys
+
+try:  # tiện ích chung (redact + decisions.jsonl); thiếu file → hook vẫn chạy, chỉ mất bản ghi
+    import harness_audit as HA
+except Exception:
+    HA = None
 
 # Drift-check opt-in: đặt HARNESS_REMOTE_POLICY=<raw url policy.yaml> để so với bản gốc.
 REMOTE_POLICY = os.environ.get("HARNESS_REMOTE_POLICY", "")
@@ -45,9 +50,16 @@ def _machine_log():
         recs = [json.loads(x) for x in open(jf, encoding="utf-8") if x.strip()]
     except Exception:
         return
-    out = ["# Machine log (R4 — sinh tự động từ audit.jsonl, đừng sửa tay)", ""]
+    out = ["# Machine log (R4 — sinh tự động từ audit.jsonl + decisions.jsonl, đừng sửa tay)", ""]
     for e in recs[-300:]:
-        out.append(f"- {e.get('ts', '')} · {e.get('tool', '')} · {e.get('path', '') or ''}".rstrip(" ·"))
+        what = e.get("path") or (e.get("cmd") or "")[:120].replace("\n", " ")
+        out.append(f"- {e.get('ts', '')} · {e.get('tool', '')} · {what}".rstrip(" ·"))
+    dec = HA.read_jsonl(os.path.join(d, "decisions.jsonl")) if HA else []
+    if dec:
+        out += ["", f"## Bị chặn ({len(dec)} lần, chi tiết ở decisions.jsonl)", ""]
+        for e in dec[-50:]:
+            what = (e.get("subject") or "")[:120].replace("\n", " ")
+            out.append(f"- {e.get('ts', '')} · {e.get('rule', '')} · {e.get('tool', '')} · {what}")
     try:
         open(os.path.join(d, "log.md"), "w", encoding="utf-8").write("\n".join(out) + "\n")
     except OSError:
@@ -94,9 +106,16 @@ def m_audit():
     data = _stdin()
     try:
         import datetime
+        tool, ti = data.get("tool_name"), (data.get("tool_input") or {})
         rec = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
-               "tool": data.get("tool_name"),
-               "path": (data.get("tool_input") or {}).get("file_path")}
+               "tool": tool,
+               "path": ti.get("file_path")}
+        if tool == "Bash":
+            # lệnh đã CHẠY (PostToolUse) → dữ liệu cho harness-replay đo luật mới. Che secret trước khi ghi.
+            if os.environ.get("HARNESS_AUDIT_NO_BASH") == "1" or HA is None:
+                return 0
+            rec.pop("path")
+            rec["cmd"] = HA.redact(ti.get("command") or "")
         with open(os.path.join(_audit_dir(), "audit.jsonl"), "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         _machine_log()  # R4 full: log.md sinh từ jsonl
@@ -182,8 +201,8 @@ _WRAPPERS = {"sudo", "env", "command", "nohup", "exec", "time"}
 
 
 def _is_system_browser_cmd(cmd):
-    """True nếu một đoạn shell MỞ trình duyệt hệ thống. Chỉ soi token đầu đoạn (sau khi bỏ
-    wrapper/env-assign), KHÔNG soi chuỗi nằm trong tham số → không chặn nhầm commit message."""
+    """Trả về ĐOẠN shell mở trình duyệt hệ thống (truthy), hoặc False. Chỉ soi token đầu đoạn (sau khi
+    bỏ wrapper/env-assign), KHÔNG soi chuỗi nằm trong tham số → không chặn nhầm commit message."""
     import re
     import shlex
     for seg in re.split(r"\s*(?:&&|\|\||;|\||\n)\s*", cmd):
@@ -197,21 +216,26 @@ def _is_system_browser_cmd(cmd):
             continue
         head, args = os.path.basename(t[0]), t[1:]
         if head in _OPENERS:
-            return True
+            return seg.strip() or True
         if head == "open":
             for i, a in enumerate(args):
                 al = a.lower()
                 if al.startswith(("http://", "https://")) or al.endswith((".html", ".htm")):
-                    return True
+                    return seg.strip() or True
                 if a in ("-a", "-b") and i + 1 < len(args):
                     v = args[i + 1].lower()
                     if v == "arc" or any(b in v for b in _BROWSERS):
-                        return True
+                        return seg.strip() or True
         if head.startswith("python") and ("webbrowser" in args or any("webbrowser.open" in a for a in args)):
-            return True
+            return seg.strip() or True
         if head == "osascript" and any("open location" in a for a in args):
-            return True
+            return seg.strip() or True
     return False
+
+
+# Hook CHẶN nào replay được: event_action → hàm thuần (lệnh Bash → đoạn khớp | False).
+# Thêm một hook chặn mới mà muốn harness-replay đo được thì khai báo ở đây.
+REPLAYABLE = {"browser-guard": lambda cmd: _is_system_browser_cmd(cmd)}
 
 
 def m_browser_guard():
@@ -224,7 +248,11 @@ def m_browser_guard():
         if d.get("tool_name") != "Bash":
             return 0
         cmd = (d.get("tool_input") or {}).get("command") or ""
-        if _is_system_browser_cmd(cmd):
+        hit = _is_system_browser_cmd(cmd)
+        if hit:
+            if HA:
+                HA.record_decision("R22", "orca-browser-only", "Bash", d.get("tool_input"),
+                                   hit if isinstance(hit, str) else None, __file__)
             sys.stderr.write("[harness R22 orca-browser-only] Không mở trình duyệt mặc định của hệ thống. "
                              "Dùng browser của Orca: `orca tab create --url <url> --json` (rồi `orca snapshot`). "
                              "Site chặn browser nhúng (vd Google sign-in) → in URL cho user tự dán, đừng tự mở Chrome.\n")

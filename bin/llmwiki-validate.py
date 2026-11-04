@@ -26,6 +26,19 @@ except ImportError:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_POLICY = os.path.normpath(os.path.join(HERE, "..", "policy.yaml"))
+POLICY_PATH = DEFAULT_POLICY   # main() gán lại khi có --policy (để bản ghi quyết định mang đúng hash policy)
+
+try:  # bản ghi quyết định chặn (decisions.jsonl); thiếu file → vẫn chặn bình thường, chỉ không ghi
+    import harness_audit as HA
+except Exception:
+    HA = None
+
+
+def _record(rule, tool, tool_input, msg):
+    """Ghi bằng chứng cho 1 lần chặn ở layer=session. Không bao giờ làm hỏng việc chặn."""
+    if HA:
+        HA.record_decision(rule.get("id", "?"), rule.get("name", rule.get("kind", "")), tool, tool_input,
+                           msg, __file__, POLICY_PATH)
 
 # bash ghi vào raw/ (mượn semantics no_write_raw.py)
 BASH_WRITE = re.compile(r"(?:>>?|\btee\b(?:\s+-a)?|\btouch\b|\bsed\s+-i\S*)\s+['\"]?(?:\S*/)?raw/")
@@ -250,6 +263,24 @@ def mode_path(policy, filepath):
         m = apply_rule(r, filepath, None, None)
         if m:
             v.append(m)
+            _record(r, "Write", {"file_path": filepath}, m)
+    return v
+
+
+def evaluate(policy, tool, ti):
+    """Một tool-call (dạng payload PreToolUse của Claude) → [(rule, thông_điệp)] vi phạm ở layer session.
+    Thuần, không ghi gì: claude-hook và harness-replay dùng CHUNG hàm này nên replay đo đúng engine thật."""
+    ti = ti or {}
+    v = []
+    for _, r in rules_for_layer(policy, "session"):
+        if tool in ("Write", "Edit", "MultiEdit"):
+            m = apply_rule(r, ti.get("file_path", ""), ti.get("content"), None)
+        elif tool == "Bash":
+            m = apply_rule(r, None, None, ti.get("command", "")) if r.get("kind") == "deny_write" else None
+        else:
+            m = None
+        if m:
+            v.append((r, m))
     return v
 
 
@@ -261,15 +292,9 @@ def mode_claude_hook(policy):
     tool = data.get("tool_name", "")
     ti = data.get("tool_input", {}) or {}
     v = []
-    for _, r in rules_for_layer(policy, "session"):
-        if tool in ("Write", "Edit", "MultiEdit"):
-            m = apply_rule(r, ti.get("file_path", ""), ti.get("content"), None)
-        elif tool == "Bash":
-            m = apply_rule(r, None, None, ti.get("command", "")) if r.get("kind") == "deny_write" else None
-        else:
-            m = None
-        if m:
-            v.append(m)
+    for r, m in evaluate(policy, tool, ti):
+        v.append(m)
+        _record(r, tool, ti, m)
     return v
 
 
@@ -286,10 +311,12 @@ def mode_files(policy, files):
 
 def main():
     args = sys.argv[1:]
+    global POLICY_PATH
     policy_path = DEFAULT_POLICY
     if args and args[0] == "--policy":
         policy_path = args[1]
         args = args[2:]
+    POLICY_PATH = policy_path
     if not args:
         sys.stderr.write("usage: llmwiki-validate.py [--policy P] {path <FILE>|files <F...>|claude-hook}\n")
         sys.exit(0)
