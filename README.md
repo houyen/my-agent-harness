@@ -57,7 +57,7 @@ Cờ:
 
 | ID  | Tên                 | Loại                    | Chặn?               | Việc làm                                                  |
 | --- | ------------------- | ----------------------- | ------------------- | --------------------------------------------------------- |
-| R4  | audit-log           | hook `PostToolUse`      | không               | Ghi `.claude/audit/audit.jsonl` + `log.md` mỗi Write/Edit |
+| R4  | audit-log           | hook `PostToolUse`      | không               | Ghi `.claude/audit/audit.jsonl` + `log.md` mỗi Write/Edit/Bash (lệnh Bash đã che secret); mỗi lần chặn ghi `decisions.jsonl` |
 | R8  | session-health      | hook `SessionStart`     | không               | Báo số rule + check drift policy                          |
 | R19 | knowledgelib-nudge  | hook `UserPromptSubmit` | không               | Nhắc tra `knowledgelib_search` mỗi N prompt               |
 | R20 | self-docs-canonical | `require_frontmatter`   | có (session + repo) | `self-docs/*.md` phải có 6 trường canonical + body        |
@@ -68,6 +68,23 @@ Cờ:
 ## Sửa luật
 
 Sửa `policy.yaml` → chạy lại `python3 gen-converters.py` (sinh `out/`) hoặc chạy lại `install.sh` (tự gen + cắm).
+
+### Xem trước hệ quả trước khi cài (plan → replay)
+
+Ý tưởng mượn từ [open-ontologies](https://github.com/fabio-rovai/open-ontologies): xem trước hệ quả, đo trên dữ liệu thật, có bằng chứng kiểm lại được. Áp vào đây bằng script thuần, không cần reasoner.
+
+```bash
+python3 gen-converters.py --plan                        # = bin/harness-plan.py: so working tree với HEAD
+python3 bin/harness-plan.py --base v1 --diff            # so với mốc khác, in unified diff của out/
+python3 bin/harness-plan.py --discover ~/Documents      # + blast radius trên các dự án đã cài (kèm replay)
+python3 bin/harness-plan.py --fail-on high              # exit 1 nếu có thay đổi rủi ro high (dùng cho CI)
+python3 bin/harness-replay.py --project /path/to/proj   # chạy engine + policy ứng viên trên audit thật
+python3 bin/harness-replay.py --engine /tmp/cand/bin --project P --fail-on-new-blocks
+```
+
+- **plan** không ghi `out/` thật: nó sinh wiring của cả mốc lẫn bản đang sửa trong thư mục tạm rồi diff. Mỗi thay đổi được chấm điểm: `high` = có chỗ chặn mới hoặc chặt hơn ở session, hoặc engine của luật đang chặn bị đổi; `medium` = CI có thể đỏ, đổi matcher, hoặc bỏ một lớp chặn; `low` = chỉ đổi lời văn hoặc nới lỏng. Với từng dự án, plan báo policy đang cài nằm ở commit nào, cài lại sẽ thêm hoặc bỏ luật gì, và bao nhiêu lệnh cũ sẽ bị chặn.
+- **replay** đọc `audit.jsonl` (lệnh đã cho qua) và `decisions.jsonl` (lệnh đã bị chặn), chạy lại bằng **cùng hàm thuần** mà hook dùng (`llmwiki-validate.evaluate`, `harness-events.REPLAYABLE`), rồi báo: vẫn qua · vẫn chặn · **MỚI BỊ CHẶN** · mới được qua · không đo được. Giới hạn (được in ra ở mỗi lần chạy): Write/Edit được đo trên nội dung *hiện tại* của file; lệnh Bash là bản đã che secret; audit trước 2026-11-04 không có Bash. Thêm một hook chặn mới thì khai hàm kiểm của nó vào `REPLAYABLE` trong `harness-events.py`, nếu không replay sẽ báo luật đó là "không replay được".
+- **decisions.jsonl**: mỗi lần chặn ghi rule, đoạn khớp, `input_sha`, `policy_sha` và `engine_sha`, đủ để kiểm lại vì sao bị chặn. Tắt bằng `HARNESS_NO_DECISIONS=1`. Tắt việc ghi lệnh Bash vào audit bằng `HARNESS_AUDIT_NO_BASH=1`. Phần che secret dựa theo mẫu (token có tiền tố, `Authorization`, `user:pass@`, biến `*_TOKEN=`/`*_KEY=`, `--password`, `mysql -p`, khối private key), nên **không bảo đảm** che hết.
 
 ## Browser policy (R22)
 
@@ -88,6 +105,7 @@ python3 bin/rules-pull.py --lang go --wire-claude   # thêm @docs/rules/go.md v�
 - `rules.local.yaml` (repo tự viết, pull không ghi đè): `overrides: [{id, action: disable|severity, severity, reason}]`. **`reason` bắt buộc.**
 - `rules.local.md` (repo tự viết, pull không ghi đè): ghi chú riêng của repo (stack, quy ước đặc thù); nối nguyên văn vào cuối `docs/rules/<out>.md` dưới heading `## Ghi chú riêng của repo (rules.local.md)`.
 - `rules.lock` theo dõi `local_notes_sha`: sửa hoặc xóa `rules.local.md` làm `--check` báo lệch và `--diff` in `~ rules.local.md`.
+- **Verdict theo nguồn luật**: mỗi bộ luật mang một từ khoá. `standard` = áp đúng bộ chuẩn KU. `with_local_overrides` = đã bị `rules.local.yaml` tắt hoặc đổi severity, nên "pass" ở repo này không tương đương "pass" theo chuẩn. Từ khoá này được in khi pull, ghi trong `rules.lock` (`verdict`) và ở đầu `docs/rules/<out>.md`. Rule bị đổi severity được đánh dấu ngay tại dòng của nó.
 - Chưa sinh config lint (eslint/golangci) từ dữ liệu — mới sinh tài liệu; bước sau.
 - Test: `bash test-rules.sh`.
 
@@ -137,8 +155,9 @@ Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent
 
 ```bash
 bash demo.sh           # 8 case nhanh (R20 path/hook/files, fail-open, sinh wiring)
-bash test-broad.sh     # 38 case (R20 canonical, robustness, R22 browser-guard)
-bash test-rules.sh     # rules-pull
+bash test-broad.sh     # 47 case (R20 canonical, robustness, R22 browser-guard, decisions.jsonl, che secret)
+bash test-plan.sh      # 31 case: harness-plan (chấm rủi ro, dự án đã cài) + harness-replay
+bash test-rules.sh     # rules-pull (kể cả verdict standard / with_local_overrides)
 bash test-propose.sh   # rules-propose
 ```
 

@@ -59,7 +59,7 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 
 | ID | Name | Type | Blocks? | What it does |
 |---|---|---|---|---|
-| R4 | audit-log | `PostToolUse` hook | no | Appends every Write/Edit to `.claude/audit/audit.jsonl` and a readable `log.md` |
+| R4 | audit-log | `PostToolUse` hook | no | Appends every Write/Edit/Bash (Bash secret-redacted) to `.claude/audit/audit.jsonl` and a readable `log.md`; every block appends to `decisions.jsonl` |
 | R8 | session-health | `SessionStart` hook | no | Reports rule count and checks policy drift |
 | R19 | knowledgelib-nudge | `UserPromptSubmit` hook | no | Every N prompts, reminds the agent to query `knowledgelib_search` |
 | R20 | self-docs-canonical | `require_frontmatter` | yes (session + repo) | `self-docs/*.md` must have 6 canonical frontmatter fields and a non-empty body |
@@ -71,6 +71,23 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 Edit `policy.yaml`, then run `python3 gen-converters.py` (writes `out/`) or re-run `install.sh` (generates and wires in one step). Do not edit adapter code to add a rule.
 
 Each rule has `enforce_at`: `session` (hook/CLI blocks at write time) or `repo` (pre-commit and CI).
+
+### Preview the consequences before installing (plan → replay)
+
+Ideas borrowed from [open-ontologies](https://github.com/fabio-rovai/open-ontologies): preview the consequences of a change, measure them on real data, and keep evidence that someone else can re-check. Implemented here as plain scripts, with no reasoner.
+
+```bash
+python3 gen-converters.py --plan                        # = bin/harness-plan.py: working tree vs HEAD
+python3 bin/harness-plan.py --base v1 --diff            # another baseline, with a unified diff of out/
+python3 bin/harness-plan.py --discover ~/Documents      # + blast radius on installed projects (with replay)
+python3 bin/harness-plan.py --fail-on high              # exit 1 on any high-risk change (for CI)
+python3 bin/harness-replay.py --project /path/to/proj   # run the candidate engine + policy on real audit logs
+python3 bin/harness-replay.py --engine /tmp/cand/bin --project P --fail-on-new-blocks
+```
+
+- **plan** never writes the real `out/`. It generates the wiring for both the baseline and the working tree in a temp dir, then diffs them. It scores each change: `high` = a new or stricter block at session, or a changed engine behind a blocking rule; `medium` = CI may go red, a changed matcher, or a removed block; `low` = text-only changes or loosening. For each installed project it reports which commit the installed policy matches, which rules a reinstall adds or removes, and how many past calls would now be blocked.
+- **replay** reads `audit.jsonl` (calls that were allowed) and `decisions.jsonl` (calls that were blocked), re-evaluates them with the **same pure functions** the hooks use (`llmwiki-validate.evaluate`, `harness-events.REPLAYABLE`), and reports: still allowed · still blocked · **NEWLY BLOCKED** · newly allowed · not measurable. Limits, printed on every run: Write/Edit are measured on the file's *current* content; Bash commands are the redacted copies; audit logs before 2026-11-04 have no Bash commands. When you add a blocking hook, register its check in `REPLAYABLE` in `harness-events.py`, or replay will list the rule as not replayable.
+- **decisions.jsonl**: every block records the rule, the matched fragment, `input_sha`, `policy_sha` and `engine_sha`, which is enough to re-check why a call was blocked. Disable with `HARNESS_NO_DECISIONS=1`; stop recording Bash commands in the audit with `HARNESS_AUDIT_NO_BASH=1`. Redaction is pattern-based (prefixed tokens, `Authorization`, `user:pass@`, `*_TOKEN=`/`*_KEY=` variables, `--password`, `mysql -p`, private key blocks), so it is **not a guarantee**.
 
 ## Browser policy (R22)
 
@@ -96,6 +113,7 @@ python3 bin/rules-pull.py --lang go --wire-claude   # add @docs/rules/go.md to C
 - `rules.local.yaml` (written by the repo, never overwritten): `overrides: [{id, action: disable|severity, severity, reason}]`. **`reason` is required.**
 - `rules.local.md` (written by the repo, never overwritten): repo-specific notes (stack, conventions), appended verbatim to the end of `docs/rules/<out>.md` under `## Ghi chú riêng của repo (rules.local.md)`.
 - `rules.lock` tracks `local_notes_sha`: editing or deleting `rules.local.md` makes `--check` report drift and `--diff` print `~ rules.local.md`.
+- **Verdict by rule source**: each rule set carries a keyword. `standard` = the KU standard set, unmodified. `with_local_overrides` = `rules.local.yaml` disabled rules or changed their severity, so a "pass" in this repo is not a pass against the standard. The keyword is printed on pull, stored in `rules.lock` (`verdict`) and shown at the top of `docs/rules/<out>.md`. Rules with a changed severity are marked on their own line.
 - No lint config (eslint/golangci) is generated from the data yet, only documentation.
 - Tests: `bash test-rules.sh`.
 
@@ -144,8 +162,9 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 ```bash
 bash demo.sh           # 8 quick cases (R20 path/hook/files, fail-open, wiring generation)
-bash test-broad.sh     # 38 cases (R20 canonical, robustness, R22 browser-guard)
-bash test-rules.sh     # rules-pull
+bash test-broad.sh     # 47 cases (R20 canonical, robustness, R22 browser-guard, decisions.jsonl, redaction)
+bash test-plan.sh      # 31 cases: harness-plan (risk scoring, installed projects) + harness-replay
+bash test-rules.sh     # rules-pull (including the standard / with_local_overrides verdict)
 bash test-propose.sh   # rules-propose
 ```
 
