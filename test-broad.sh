@@ -51,6 +51,13 @@ hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/engine/calc.md","c
 hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/engine/calc.md","content":"---\nid: self-docs/engine/calc\ncanonical_question: How to calculate salary\naliases: [calc salary, engine]\nentity_type: runbook\ndomain: self-docs > engine\nlast_verified: 2026-09-17\n---\n# Calc\n\nValid canonical content."}}'; assert 0 "R20: self-docs đủ chuẩn canonical qua" $?
 hk '{"tool_name":"Write","tool_input":{"file_path":"self-docs/MEMORY_INDEX.md","content":"# Index\nNo frontmatter"}}'; assert 0 "R20: MEMORY_INDEX.md miễn trừ" $?
 
+# ── J2. R20 với file_path TUYỆT ĐỐI (dạng Claude Code gửi thật) ──
+PD="$CLAUDE_PROJECT_DIR"
+hk "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$PD/self-docs/x.md\",\"content\":\"# x\"}}"; assert 2 "R20: đường dẫn tuyệt đối trong dự án vẫn bị chặn" $?
+hk "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$PD/src/self-docs/x.md\",\"content\":\"# x\"}}"; assert 0 "R20: self-docs/ lồng sâu không khớp glob gốc" $?
+hk '{"tool_name":"Write","tool_input":{"file_path":"/elsewhere/self-docs/x.md","content":"# x"}}'; assert 0 "R20: file ngoài gốc dự án không bị soi" $?
+python3 "$CLI" path "$PD/self-docs/x.md" >/dev/null 2>&1;                    assert 0 "R20 path mode: file chưa tồn tại → bỏ qua" $?
+
 # ── K. R22 orca_browser_only (harness-events.py browser-guard, block=2) ──
 EV="bin/harness-events.py"
 bg(){ printf '%s' "$1" | python3 "$EV" browser-guard >/dev/null 2>&1; }

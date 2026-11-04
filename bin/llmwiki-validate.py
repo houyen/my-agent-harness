@@ -66,7 +66,15 @@ def glob_to_regex(glob):
 
 
 def norm(path):
+    """Chuẩn hoá về đường dẫn tương đối so với gốc dự án, để khớp glob neo đầu (`self-docs/**`).
+    Claude gửi file_path TUYỆT ĐỐI → trước 2026-11-04 không glob nào khớp, R20 chưa từng chặn ở session.
+    File nằm ngoài gốc dự án giữ nguyên tuyệt đối (không khớp glob tương đối nào → không bị soi)."""
     p = (path or "").replace("\\", "/")
+    root = os.environ.get("CLAUDE_PROJECT_DIR")
+    if root and os.path.isabs(p):
+        rel = os.path.relpath(p, os.path.abspath(root)).replace("\\", "/")
+        if rel != ".." and not rel.startswith("../"):
+            p = rel
     return p[2:] if p.startswith("./") else p
 
 

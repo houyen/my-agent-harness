@@ -155,7 +155,7 @@ Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent
 
 ```bash
 bash demo.sh           # 8 case nhanh (R20 path/hook/files, fail-open, sinh wiring)
-bash test-broad.sh     # 47 case (R20 canonical, robustness, R22 browser-guard, decisions.jsonl, che secret)
+bash test-broad.sh     # 51 case (R20 canonical, robustness, R22 browser-guard, decisions.jsonl, che secret)
 bash test-plan.sh      # 31 case: harness-plan (chấm rủi ro, dự án đã cài) + harness-replay
 bash test-rules.sh     # rules-pull (kể cả verdict standard / with_local_overrides)
 bash test-propose.sh   # rules-propose
