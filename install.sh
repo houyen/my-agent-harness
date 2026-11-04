@@ -51,7 +51,7 @@ mkdir -p "$DEST/bin"
 if [ "$(cd "$SRC" && pwd -P)" != "$(cd "$DEST" && pwd -P)" ]; then
   cp "$SRC/policy.yaml" "$SRC/gen-converters.py" "$SRC/demo.sh" "$SRC/test-broad.sh" "$DEST/"
   cp "$SRC/bin/"*.py "$DEST/bin/"
-  for f in install.sh uninstall.sh bootstrap.sh test-rules.sh test-propose.sh README.md DOCS.md; do [ -f "$SRC/$f" ] && cp "$SRC/$f" "$DEST/"; done
+  for f in install.sh uninstall.sh bootstrap.sh test-rules.sh test-propose.sh test-plan.sh README.md DOCS.md; do [ -f "$SRC/$f" ] && cp "$SRC/$f" "$DEST/"; done
   [ -d "$SRC/skills" ] && { rm -rf "$DEST/skills"; cp -R "$SRC/skills" "$DEST/skills"; }
 else
   log "  · lõi đã ở đúng chỗ (SRC=DEST), bỏ qua copy"

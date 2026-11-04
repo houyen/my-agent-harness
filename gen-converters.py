@@ -35,6 +35,10 @@ def write(rel, content):
 
 
 def main():
+    # --plan: xem trước hệ quả (luật/engine/out/ + dự án đã cài), KHÔNG ghi out/. Tham số còn lại chuyển nguyên.
+    if len(sys.argv) > 1 and sys.argv[1] == "--plan":
+        plan = os.path.join(HERE, "bin", "harness-plan.py")
+        os.execv(sys.executable, [sys.executable, plan] + sys.argv[2:])
     with open(POLICY, encoding="utf-8") as f:
         policy = yaml.safe_load(f)
     rules = policy.get("rules", {})
