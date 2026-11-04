@@ -115,9 +115,26 @@ def apply_overrides(rules, overrides):
         elif o["action"] == "disable":
             applied.append((r["id"], "tắt", o["reason"]))
         else:
-            result.append({**r, "severity": o["severity"]})
+            result.append({**r, "severity": o["severity"],
+                           "_local": f"cục bộ: severity {r['severity']} → {o['severity']} — {o['reason']}"})
             applied.append((r["id"], f"severity → {o['severity']}", o["reason"]))
     return result, applied
+
+
+def verdict(applied):
+    """Từ khoá nguồn luật (mượn 'entailed' vs 'entailed_under_supplied_rules' của open-ontologies):
+    standard              = repo áp đúng bộ chuẩn KU;
+    with_local_overrides  = repo áp bộ chuẩn ĐÃ BỊ override cục bộ → 'pass' ở repo này không bằng 'pass' theo chuẩn."""
+    return "with_local_overrides" if applied else "standard"
+
+
+def verdict_line(applied):
+    if not applied:
+        return "**Nguồn luật:** `standard`: đúng bộ chuẩn KU, không override cục bộ."
+    off = sum(1 for _, what, _ in applied if what == "tắt")
+    sev = len(applied) - off
+    return (f"**Nguồn luật:** `with_local_overrides`: bộ chuẩn KU đã bị rules.local.yaml đổi "
+            f"({off} tắt, {sev} đổi severity). Kết quả kiểm ở repo này KHÔNG tương đương kiểm theo chuẩn.")
 
 
 def render(ku, rules, applied, local_notes=None):
@@ -127,6 +144,8 @@ def render(ku, rules, applied, local_notes=None):
         "<!-- Đừng sửa tay: sửa KU trong knowledgelib hoặc override ở rules.local.yaml, rồi chạy lại rules-pull -->",
         "",
         f"# {title} — rule code (v{ku['version']})",
+        "",
+        verdict_line(applied),
         "",
         "`error` = chặn; `warn` = đếm ratchet. `machine` = lint kiểm được; `review` = soát tay; `refactor` = kinh nghiệm cấu trúc.",
         "",
@@ -147,6 +166,8 @@ def render(ku, rules, applied, local_notes=None):
                 meta.append(f"scope: {scope}")
             if r.get("evidence"):
                 meta.append(f"bằng chứng: {r['evidence']}")
+            if r.get("_local"):
+                meta.append(f"**{r['_local']}**")
             if meta:
                 lines.append("  - " + " · ".join(meta))
         lines.append("")
@@ -209,7 +230,8 @@ def main():
         out_rel = f"docs/rules/{OUT_NAME[lang]}.md"
         entry = {"version": ku["version"], "source": ku["source"], "sha": ku["sha"],
                  "rules": rule_hashes(ku["rules"]), "output": out_rel, "output_sha": sha(doc),
-                 "overrides": sorted(overrides), "local_notes_sha": local_notes_sha}
+                 "overrides": sorted(overrides), "local_notes_sha": local_notes_sha,
+                 "verdict": verdict(applied)}
         old = lock.get("sets", {}).get(lang)
         changes = diff_sets(old, entry)
         out_path = os.path.join(root, out_rel)
@@ -218,7 +240,7 @@ def main():
                  or old.get("overrides") != entry["overrides"]
                  or old.get("local_notes_sha") != entry["local_notes_sha"])
         print(f"[{lang}] v{ku['version']} · {len(rules)} rule dùng ({len(ku['rules'])} trong KU) · "
-              f"{'LỆCH' if stale else 'khớp'}")
+              f"{'LỆCH' if stale else 'khớp'} · {verdict(applied)}")
         for c in changes:
             print(c)
         if stale and not changes:

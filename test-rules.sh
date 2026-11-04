@@ -77,6 +77,31 @@ YML
 $RP --lang go --root "$R" --kl "$KL" >/dev/null 2>&1;              assert 2 "override thiếu reason bị từ chối" $?
 rm "$R/rules.local.yaml"
 
+echo "── C2. verdict theo nguồn luật (standard vs with_local_overrides) ──"
+out=$($RP --lang go --root "$R" --kl "$KL" 2>&1)
+echo "$out" | grep -q "· standard$" && g=1 || g=0;                     assert 1 "không override → in verdict standard" $g
+grep -q 'Nguồn luật:\*\* `standard`' "$R/docs/rules/go.md" && g=1 || g=0;  assert 1 "doc ghi standard" $g
+python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['sets']['go']['verdict'])" "$R/rules.lock" | grep -qx standard && g=1 || g=0
+assert 1 "rules.lock ghi verdict standard" $g
+cat > "$R/rules.local.yaml" <<'YML'
+overrides:
+  - id: GO-ERR-01
+    action: severity
+    severity: warn
+    reason: "đang migrate errors"
+  - id: GO-SIZE-01
+    action: disable
+    reason: "repo cũ"
+YML
+out=$($RP --lang go --root "$R" --kl "$KL" 2>&1)
+echo "$out" | grep -q "· with_local_overrides$" && g=1 || g=0;         assert 1 "có override → in with_local_overrides" $g
+grep -q '`with_local_overrides`.*(1 tắt, 1 đổi severity)' "$R/docs/rules/go.md" && g=1 || g=0; assert 1 "doc đếm 1 tắt, 1 đổi severity" $g
+grep -A1 "GO-ERR-01\*\* \[warn" "$R/docs/rules/go.md" | grep -q "cục bộ: severity error → warn — đang migrate errors" && g=1 || g=0
+assert 1 "rule đổi severity có đánh dấu ngay tại dòng" $g
+python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['sets']['go']['verdict'])" "$R/rules.lock" | grep -qx with_local_overrides && g=1 || g=0
+assert 1 "rules.lock ghi verdict with_local_overrides" $g
+rm "$R/rules.local.yaml"; $RP --lang go --root "$R" --kl "$KL" >/dev/null 2>&1
+
 echo "── D. lỗi đầu vào (exit 2) ──"
 $RP --lang rust --root "$R" --kl "$KL" >/dev/null 2>&1;            assert 2 "lang lạ" $?
 $RP --lang js-ts --root "$R" --kl "$KL" >/dev/null 2>&1;           assert 2 "thiếu KU" $?
