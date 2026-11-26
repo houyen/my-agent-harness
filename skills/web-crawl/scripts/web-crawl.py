@@ -15,6 +15,8 @@ import html as _html
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -22,7 +24,7 @@ from pathlib import Path
 import bnal_config
 from urllib.request import Request, urlopen
 
-_FALLBACK = {"verified": False, "backend": "builtin", "api_key_env": "FIRECRAWL_API_KEY",
+_FALLBACK = {"verified": False, "backend": "moli", "api_key_env": "FIRECRAWL_API_KEY",
              "max_bytes": 2000000, "default_output_dir": "raw"}
 
 
@@ -57,9 +59,23 @@ def html_to_markdown(html: str) -> str:
 
 
 def fetch(url: str, cfg: dict) -> str:
-    """builtin backend: urllib fetch → markdown. Premium backends are the (un-wired) adapter."""
-    backend = str(cfg.get("backend", "builtin"))
-    if backend != "builtin":
+    """moli backend (default): headless Rust engine (~30MB RAM, JS render) → markdown.
+    Falls back to builtin urllib fetch → regex HTML→markdown when moli is absent or backend=='builtin'."""
+    backend = str(cfg.get("backend", "moli"))
+    if backend == "moli":
+        moli_bin = shutil.which("moli") or os.path.expanduser("~/.local/bin/moli")
+        if os.path.isfile(moli_bin) and os.access(moli_bin, os.X_OK):
+            res = subprocess.run(
+                [moli_bin, "fetch", url, "--dump", "markdown", "--wait", "domstable", "--timeout-ms", "15000"],
+                capture_output=True, text=True, timeout=25,
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                return res.stdout.strip() + "\n"
+            print(f"[web-crawl] moli fetch lỗi (rc={res.returncode}): {(res.stderr or '').strip()} — rơi về builtin.",
+                  file=sys.stderr)
+        else:
+            print("[web-crawl] không tìm thấy binary 'moli' — rơi về builtin urllib.", file=sys.stderr)
+    elif backend != "builtin":
         key = os.environ.get(cfg.get("api_key_env", ""))
         if not key:
             print(f"[web-crawl] backend '{backend}' chưa có key ({cfg.get('api_key_env')}) — "

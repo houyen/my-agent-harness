@@ -1,153 +1,148 @@
 ---
 name: playwright-verify
-description: "Cài + dùng Playwright bằng standalone .mjs script (không qua npx playwright test / *.spec.ts) để verify code nhanh, một lần: chụp ảnh localhost/file://, đọc console/pageerror, đo getBoundingClientRect khi phần tử không thấy/không bấm được, auth bypass qua addCookies+addInitScript; việc NHIỀU BƯỚC thì mode phiên bền connectOverCDP (tab/cookie giữ nguyên giữa các lượt, không viết mù cả kịch bản). Dùng khi user nói 'verify bằng playwright', 'chụp ảnh trang', 'test nhanh UI bằng script', 'verify nhiều bước', 'giữ session giữa các lần chạy', 'claude-in-chrome bị chặn localhost', 'không click được / không thấy phần tử', hoặc invoke /playwright-verify. KHÁC uat-nonit-testcase (bộ test case UAT cho non-IT) và claude-in-chrome (extension, bị chặn localhost/file://) — đây là hướng dẫn CHUNG áp dụng mọi task."
+description: "Verify UI nhanh và tự động hoá trình duyệt theo kiến trúc 3 tầng chuẩn R22 (Orca Browser + Moli + browser-use), hoặc standalone Playwright .mjs khi dự án yêu cầu rõ: (1) Orca Browser (`orca tab create`, `orca eval`, `orca screenshot`, `orca snapshot`) cho localhost/UI QA, đo getBoundingClientRect/computedStyle và human-in-the-loop 2FA/OTP; (2) `browser-use` kết nối CDP của `moli serve --cdp-port 9222 --layout` (~30MB RAM, không mở Chrome cá nhân) cho luồng thao tác tự hành nhiều bước; (3) `moli fetch <url> --dump markdown` để đọc trang siêu nhẹ. Dùng khi user nói 'verify UI', 'chụp ảnh trang', 'test nhanh UI', 'verify nhiều bước', 'giữ session giữa các lần chạy', 'không click được / không thấy phần tử', hoặc invoke /playwright-verify."
 metadata:
   design-standard: "solid-what-how/1"
-  contract-version: "1.0.0"
+  contract-version: "1.1.0"
   loop: dev-loop
 ---
 
-# Skill: playwright-verify
+# Skill: playwright-verify (3-Tier Browser Verify & Automation)
 
-Đúc kết từ GH#96 — công cụ verify RẺ (< 5s/lần, không LLM) và là cách DUY NHẤT tương tác
-được với `localhost`/`file://` khi `claude-in-chrome` bị chặn 2 scheme này trên máy.
+Cổng kiểm chứng UI và điều khiển trình duyệt tuân thủ **R22 (3-Tier Browser Architecture)**:
+ưu tiên **Orca Browser** cho visual QA / `localhost` / 2FA, **Moli + browser-use (CDP)** cho luồng tự hành nhiều bước siêu nhẹ (~30MB RAM), và chỉ dùng standalone Playwright `.mjs` khi repo có sẵn script được user chỉ định.
 
 ## WHAT
 
 ### Purpose và context
-- **Purpose:** verify code nhanh, một lần, bằng Playwright chạy qua standalone `.mjs` + `node` (không test runner): chụp ảnh `localhost`/`file://`, moi lỗi console/pageerror/http/requestfailed, đo phần tử thật, auth bypass; việc nhiều bước thì phiên bền `connectOverCDP`.
+- **Purpose:** kiểm chứng giao diện (`localhost`/`file://`/production), đo hình học phần tử (`getBoundingClientRect`, `getComputedStyle`), chụp ảnh nghiệm thu, hoặc chạy luồng thao tác tự hành nhiều bước mà KHÔNG bao giờ tự mở trình duyệt mặc định của hệ thống (Chrome/Safari cá nhân).
 - **Trigger (when to use):**
-- `claude-in-chrome` báo `Frame with ID 0 is showing error page` hoặc `Can't interact with
-  browser-internal or unparseable URLs` trên `localhost:*` / `file://`.
-- Cần chẩn đoán phần tử UI "không thấy" / "không bấm được" — ảnh chụp không đủ, cần số đo
-  thật (`getBoundingClientRect`, `getComputedStyle`).
-- Cần verify 1 giả thuyết code rồi vứt (không xứng tạo `*.spec.ts` + test runner).
-- Cần test qua dev-login/session giả thay vì đăng nhập SSO thật mỗi lần.
-  - User nói 'verify bằng playwright', 'chụp ảnh trang', 'test nhanh UI bằng script', 'verify nhiều bước', 'giữ session giữa các lần chạy', 'không click được / không thấy phần tử', hoặc `/playwright-verify`.
-- **Non-goals:** không tạo `*.spec.ts` + test runner (`npx playwright test`), không phải bộ test case UAT (→ uat-nonit-testcase), không thay claude-in-chrome cho trang web ngoài bình thường, không commit script vào repo đích.
+  - Cần kiểm tra UI local dev (`http://localhost:*`), chụp ảnh màn hình, kiểm tra console/DOM/CSS.
+  - Cần chẩn đoán phần tử UI "không thấy" / "không bấm được" bằng số đo thật (`getBoundingClientRect`, `getComputedStyle`).
+  - Cần chạy luồng thao tác nhiều bước tự hành (điền form, điều hướng phức tạp) qua `browser-use` + `moli` CDP.
+  - Cần người dùng tự đăng nhập tài khoản thật / nhập OTP / 2FA trên cửa sổ trực quan (Orca Browser).
+  - User nói 'verify UI', 'verify bằng playwright', 'chụp ảnh trang', 'test nhanh UI', 'verify nhiều bước', 'giữ session giữa các lần chạy', hoặc `/playwright-verify`.
+- **Non-goals:** không tự mở Chrome/Safari hệ thống (`open <url>`, `xdg-open`), không tạo `*.spec.ts` + test runner nặng nề cho việc kiểm tra 1 lần, không commit script tạm vào repo.
 
-### Mental model
-`giả thuyết cần verify → (đã cài?) → script .mjs một-phát: launch → gắn 4 kênh lỗi → goto (load + wait) → screenshot/đo → close → đọc log + ảnh → vứt`. Nhánh nhiều bước: `một Chrome CDP riêng (profile tạm) ← mỗi lượt step-N.mjs bám vào, state sống giữa các lượt → pkill khi xong`.
+### Mental model (Ma trận 3 tầng)
+```
+[Tầng 2a: Đọc nhanh Markdown]  ──► moli fetch "<url>" --dump markdown --wait domstable (~30MB RAM)
+[Tầng 1+2a: Tự hành nhiều bước] ──► moli serve --cdp-port 9222 --layout ◄── browser-use (CDP)
+[Tầng 2b: Visual QA / 2FA]     ──► orca tab create --url "<url>" ──► orca eval / snapshot / screenshot
+```
 
 ### Input và output contract
 | | Field | Required? | Ý nghĩa |
 |---|---|---|---|
-| In | URL (`localhost:*` / `file://` / khác) | có | trang cần verify |
-| In | project có `@playwright/test` trong `node_modules` | có | script phải chạy TỪ thư mục đó (hoặc `NODE_PATH`) |
-| In | cookie/localStorage dev-login | không | cho auth bypass |
-| Out | ảnh chụp (vd `/tmp/check.png`) + log `[console]`/`[pageerror]`/`[http]`/`[reqfail]` | có | bằng chứng; ảnh sạch một mình KHÔNG đủ |
-| Out | số đo `getBoundingClientRect`/`getComputedStyle` | khi chẩn đoán phần tử | số thật thay vì đoán từ ảnh |
-| Out | "xong" | — | giả thuyết xác nhận/bác bỏ bằng log + ảnh; script đã dọn; Chrome CDP (nếu có) đã `pkill` |
+| In | URL (`localhost:*` / `file://` / remote) | có | trang cần verify hoặc thao tác |
+| In | Mục tiêu kiểm tra / chuỗi bước | có | kiểm tra UI, đo DOM, hay chạy luồng nhiều bước |
+| Out | Ảnh chụp (`orca screenshot` / `moli fetch --dump screenshot --layout`) + kết quả DOM/log | có | bằng chứng thực tế; ảnh sạch một mình KHÔNG đủ nếu chưa kiểm tra DOM/lỗi |
+| Out | Số đo `getBoundingClientRect`/`getComputedStyle` | khi chẩn đoán phần tử | lấy qua `orca eval` hoặc `moli fetch --layout --eval` |
+| Out | Dọn dẹp | — | đóng server `moli serve` tạm (nếu có bật) sau khi xong |
 
 ### Rules và capabilities
-- RULE-01 (MUST): **`import { chromium } from "@playwright/test"` phải chạy TỪ TRONG thư mục project** có
-  `@playwright/test` trong `node_modules` — ESM resolve theo `cwd`, không theo vị trí file
-  script. Script ở thư mục khác (vd `/tmp`) → `cp` vào project trước khi chạy, hoặc trỏ
-  `NODE_PATH`.
-- RULE-02 (MUST): **`waitUntil: "networkidle"` TREO VÔ THỜI HẠN trên Next.js dev server** — HMR/webpack dev
-  giữ 1 kết nối long-poll/websocket sống liên tục nên network không bao giờ "idle". Dùng
-  `waitUntil: "load"` + `page.waitForTimeout(N)` cố định.
-- RULE-03 (MUST): **Auth bypass cho dev-login**: `context.addCookies([{url, name, value}])` (ưu tiên `url`
-  thay vì `domain`+`path` riêng lẻ — tránh cookie không match) + `context.addInitScript(...)`
-  set `localStorage` — set state TRƯỚC khi gọi `newPage()`, không phải sau.
-- RULE-04 (MUST): **1 `context` cho mỗi route độc lập** nếu app có logic "gặp 401 ở API phụ → tự xoá session
-  toàn cục" — dùng lại 1 context cho nhiều navigation khiến lỗi route N hỏng lây route N+1.
-- RULE-05 (MUST): **Chẩn đoán "không thấy/không bấm được"**: đừng chỉ nhìn ảnh chụp — gọi
-  `page.evaluate(() => el.getBoundingClientRect())` + `getComputedStyle(el)` lấy số đo thật;
-  `locator.click()` tự báo lỗi rõ ("element is not visible") kèm log các bước thử lại, đọc
-  log đó trước khi đoán nguyên nhân.
-- RULE-06 (MUST): **Ảnh chụp sạch không chứng minh gì — luôn moi 4 kênh lỗi**, không chỉ 2:
-  `console` (type `error`) · `pageerror` · `response` có `status() >= 400` · `requestfailed`.
-  Analytics crash, API 5xx, promise rejection không hiện lên pixel nào. Gắn vào `page` TRƯỚC
-  `goto`:
-  ```js
-  page.on("response", r => { if (r.status() >= 400) console.log("[http]", r.status(), r.url()); });
-  page.on("requestfailed", r => console.log("[reqfail]", r.failure()?.errorText, r.url()));
+- RULE-01 (MUST - R22): **CẤM mở trình duyệt mặc định của hệ thống** (`open <url>`, `open -a "Google Chrome"`, `xdg-open`, `python -m webbrowser`). Luôn chọn trong bộ 3: **Orca Browser**, **Moli**, hoặc **browser-use + Moli CDP**.
+- RULE-02 (MUST): **Kiểm tra UI / Visual QA / 2FA trên `localhost` hoặc trang cần đăng nhập** → Dùng **Orca Browser**:
+  ```bash
+  orca tab create --url "http://localhost:3000" --json
+  orca snapshot
+  orca eval "JSON.stringify(document.querySelector('h1')?.getBoundingClientRect())"
+  orca screenshot
   ```
-- RULE-07 (MUST): **Mode phiên bền: một Chrome riêng, một profile riêng** (`--user-data-dir` tạm). Không bao giờ
-  `--remote-debugging-port` lên Chrome cá nhân của user — macOS bật hộp thoại xin phép và
-  script sẽ giẫm lên tab user đang làm.
-- RULE-08 (MUST): File script standalone không vào git — chạy từ scratchpad, không commit vào repo đích.
-- RULE-09 (MUST): Touch only what the task requires — no opportunistic changes.
-- Capabilities: chạy trình duyệt headless cục bộ + đọc/ghi file tạm; mạng ngoài chỉ khi cài binary (CDN), có timeout.
+  Nếu Orca chưa chạy: gọi `orca open --json` rồi thử lại. Không bao giờ tự gõ mật khẩu/2FA của user — để user tự nhập trên tab Orca.
+- RULE-03 (MUST): **Luồng tự hành nhiều bước (Headless, ~30MB RAM)** → Ghép **`browser-use` lái `Moli` qua CDP** (không để `browser-use` tự mở hay bám vào Chrome cá nhân của user):
+  ```bash
+  # 1. Bật Moli CDP server ở nền (cờ --layout để hỗ trợ toạ độ click & screenshot)
+  moli serve --cdp-port 9222 --layout &
+  MOLI_PID=$!
+  ```
+  Sau đó kết nối qua Python (`Browser(cdp_url="http://127.0.0.1:9222")`) và `kill $MOLI_PID` khi hoàn tất.
+- RULE-04 (MUST): **Chẩn đoán "không thấy / không bấm được"**: không đoán mò từ ảnh chụp — dùng `orca eval` (hoặc `moli fetch --layout --eval`) để đọc `el.getBoundingClientRect()` và `getComputedStyle(el)`.
+- RULE-05 (MUST): **`waitUntil: "networkidle"` dễ treo trên Next.js/Vite dev server** do HMR WebSocket giữ kết nối. Khi dùng `moli fetch`, ưu tiên `--wait domstable` hoặc `--wait load --delay-ms 1500`.
+- RULE-06 (MUST): Không commit các file script kiểm thử tạm thời vào git.
 
 ### Failure boundaries
-- `npx playwright install` bị chặn mạng/treo → **blocked**, báo lỗi rõ (có timeout), không để lệnh treo vô hạn.
-- ESM không resolve `@playwright/test` (chạy sai cwd) → cp script vào project hoặc `NODE_PATH`, rồi chạy lại.
-- `networkidle` treo trên Next.js dev → đổi sang `load` + `waitForTimeout` (không phải lỗi app).
-- Phần tử không thấy/không bấm → đo số thật + đọc log `locator.click()` trước khi kết luận; không đoán từ ảnh.
+- Site từ chối trình duyệt nhúng (vd Google Sign-In báo "This browser or app may not be secure") → **STOP**, in URL ra cho user tự copy, KHÔNG tự động fallback sang lệnh `open` trình duyệt hệ thống.
+- Orca thiếu tính năng đặc thù mà tác vụ bắt buộc cần (vd emulate print media phức tạp) → dùng `moli fetch "<url>" --dump pdf --layout` hoặc báo rõ cho user trước khi dùng công cụ khác.
 
 ## HOW
 
 ### Main workflow
 | Step | Type | Inputs | Action | Outputs/exit | Failure/next |
 |---|---|---|---|---|---|
-| W01 | deterministic | máy | Kiểm đã cài (`ls ~/Library/Caches/ms-playwright`); chưa có thì cài | binary sẵn | CDN bị chặn → blocked |
-| W02 | judgment | giả thuyết + URL | Viết 1 file `.mjs` chạy thẳng bằng `node`, gắn 4 kênh lỗi trước `goto` | script | — |
-| W03 | effect | script | Chạy từ đúng thư mục (`node check.mjs`), đọc log + ảnh; dọn script | log + ảnh | resolve lỗi → cp/NODE_PATH, lặp W03 |
-| W04 | effect | việc nhiều bước | Mode phiên bền `connectOverCDP` (B01) | state giữ giữa lượt | xong → `pkill` |
+| W01 | judgment | URL + mục tiêu | Chọn tầng phù hợp: Đọc text (`moli fetch`) · Visual QA/2FA (`orca`) · Tự hành nhiều bước (`browser-use` + `moli serve`) | công cụ đã chọn | — |
+| W02 | effect | Visual QA / `localhost` | `orca tab create --url <URL> --json` → `orca snapshot` / `orca eval` / `orca screenshot` | ảnh + số đo DOM | Orca chưa bật → `orca open --json` |
+| W03 | effect | Tự hành nhiều bước | Bật `moli serve --cdp-port 9222 --layout` → chạy `browser-use` qua `cdp_url="http://127.0.0.1:9222"` → tắt `moli serve` | kết quả thực thi | lỗi bước → xem trace và chỉnh prompt/script |
+| W04 | effect | Chụp/PDF không cần mở tab | `moli fetch "<URL>" --layout --dump screenshot_full > /tmp/check.png` | file ảnh/PDF | — |
 
-Chi tiết từng bước (nguồn chân lý cho W01–W04):
+Chi tiết từng phương án thực thi:
 
-1. **Kiểm tra đã cài chưa** trước khi cài lại: `ls ~/Library/Caches/ms-playwright` (macOS) —
-   binary cache dùng chung mọi project, không cần cài lại per-repo.
-   - Chưa có: `pnpm add -D @playwright/test` (bỏ qua nếu project đã có sẵn trong
-     `devDependencies`) rồi `npx playwright install chromium`.
-   - `npx playwright install` tải binary từ CDN ngoài (`cdn.playwright.dev`) — sandbox/CI có
-     allowlist mạng sẽ treo hoặc fail. Set timeout khi gọi tự động; nếu bị chặn, báo lỗi rõ
-     thay vì để lệnh treo vô thời hạn.
-2. **Viết 1 file `.mjs` chạy thẳng bằng `node`** (không qua `npx playwright test`) — nặng hơn
-   cho việc verify-rồi-vứt:
-   ```js
-   import { chromium } from "@playwright/test"; // export chromium dùng được như package "playwright"
+#### Phương án 1: Kiểm tra UI, đo DOM/CSS & Chụp màn hình bằng Orca Browser (Khuyên dùng cho Dev/QA)
+```bash
+# Mở trang trên Orca Browser
+orca tab create --url "http://localhost:3000" --json
 
-   const browser = await chromium.launch();
-   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
-   page.on("console", m => console.log("[console]", m.type(), m.text()));
-   page.on("pageerror", e => console.log("[pageerror]", e.message));
+# Xem cấu trúc accessibility / DOM snapshot
+orca snapshot
 
-   await page.goto("http://localhost:3000/some-page", { waitUntil: "load" }); // KHÔNG "networkidle" — xem Rules #2
-   await page.waitForTimeout(1500);
-   await page.screenshot({ path: "/tmp/check.png", fullPage: true });
+# Đo toạ độ, kích thước và style thật của phần tử
+orca eval "(() => { const el = document.querySelector('.btn-submit'); return JSON.stringify({ rect: el?.getBoundingClientRect(), style: el ? getComputedStyle(el).display : null }); })()"
 
-   await browser.close();
-   ```
-3. **Chạy từ đúng thư mục** (xem Rules #1), `node check.mjs`, đọc console/pageerror log +
-   ảnh chụp. Dọn file `.mjs` sau khi xong nếu chạy trong 1 project cụ thể (không cần xoá gì
-   khỏi git — script không nằm trong repo nếu chạy từ scratch dir).
-4. **Việc NHIỀU BƯỚC có điều kiện → mode phiên bền** (học từ browser-use/browser-harness,
-   09/2026). Script một-phát bắt agent viết mù cả kịch bản; sai một bước là chạy lại từ
-   đăng nhập. Thay vào đó: dựng MỘT Chrome có cổng CDP, mỗi lượt là một script nhỏ bám vào —
-   tab, cookie, `localStorage`, scroll giữ nguyên giữa các lượt, agent nhìn rồi mới quyết bước kế.
-   ```bash
-   # một lần — Chrome riêng, profile riêng; KHÔNG bám vào Chrome cá nhân của user
-   CH="$HOME/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
-   "$CH" --remote-debugging-port=9333 --user-data-dir=/tmp/pw-prof --headless=new --no-first-run about:blank &
-   ```
-   ```js
-   // mỗi lượt — step-N.mjs
-   import { chromium } from "@playwright/test";
-   const browser = await chromium.connectOverCDP("http://localhost:9333");
-   const ctx = browser.contexts()[0];
-   const page = ctx.pages()[0] ?? await ctx.newPage();   // bám tab cũ, KHÔNG launch mới
-   // ... một hành động + quan sát; state sống sang lượt sau ...
-   await browser.close();   // chỉ ngắt kết nối, Chrome vẫn chạy
-   ```
-   Xong việc: `pkill -f "remote-debugging-port=9333"`.
-   Đo 09/09/2026 (python-playwright, cùng trang `file://`): launch mới 1.1–1.9s/lượt, mất
-   state; `connectOverCDP` 0.65–0.80s/lượt, `window.__marker` sống qua tiến trình mới (3/3).
-   Bản `.mjs` trên chưa chạy bằng node trong phiên đo — API đồng nhất với bản python đã chạy.
+# Chụp màn hình nghiệm thu
+orca screenshot
+```
+
+#### Phương án 2: Chụp màn hình / Xuất PDF / Đo DOM siêu tốc không giao diện bằng Moli (~30MB RAM)
+Khi chỉ cần chụp nhanh 1 URL hoặc lấy kết quả JS mà không cần mở tab trên màn hình:
+```bash
+# Chụp toàn trang ra PNG (bắt buộc có --layout)
+moli fetch "http://localhost:3000" --wait domstable --layout --dump screenshot_full > /tmp/check.png
+
+# Chạy biểu thức JS lấy số đo layout sau khi trang ổn định
+moli fetch "http://localhost:3000" --wait domstable --layout --eval "JSON.stringify(document.body.getBoundingClientRect())"
+```
+
+#### Phương án 3: Luồng thao tác tự hành nhiều bước (`browser-use` + `Moli` CDP)
+Khi cần agent tự suy luận và thực hiện chuỗi click/điền form nhiều bước mà không tốn RAM của Chromium:
+```bash
+# Bước 1: Khởi động Moli CDP Server ở nền
+moli serve --cdp-port 9222 --layout &
+MOLI_PID=$!
+sleep 1
+
+# Bước 2: Chạy browser-use kết nối thẳng vào CDP của Moli
+python3 - <<'PY'
+import asyncio
+from browser_use import Agent, Browser
+from langchain_openai import ChatOpenAI
+
+async def main():
+    browser = Browser(cdp_url="http://127.0.0.1:9222")
+    agent = Agent(
+        task="Truy cập http://localhost:3000, điền form tìm kiếm và trích xuất kết quả đầu tiên",
+        llm=ChatOpenAI(model="gpt-4o-mini"),
+        browser=browser,
+    )
+    history = await agent.run()
+    print("Kết quả:", history.final_result())
+
+asyncio.run(main())
+PY
+
+# Bước 3: Dọn dẹp Moli CDP Server
+kill $MOLI_PID 2>/dev/null || true
+```
 
 ### Branches
 | ID | Kind | Guard | Hành vi | Skip / failure | Rejoin |
 |---|---|---|---|---|---|
-| B01 | conditional_required | việc NHIỀU BƯỚC có điều kiện (cần nhìn rồi mới quyết bước kế) | một Chrome riêng `--remote-debugging-port=9333` + profile tạm; mỗi lượt `step-N.mjs` `connectOverCDP` | việc một-phát → skip; không bao giờ bám Chrome cá nhân | kết thúc bằng `pkill -f "remote-debugging-port=9333"` |
-| B02 | user_optional | trang cần dev-login/session giả | `context.addCookies` + `context.addInitScript` TRƯỚC `newPage()`; 1 context/route nếu app tự xoá session khi 401 | — | W03 |
-| B03 | recovery | phần tử "không thấy/không bấm được" | `page.evaluate(() => el.getBoundingClientRect())` + `getComputedStyle(el)`, đọc log retry của `locator.click()` | — | W03 |
+| B01 | conditional_required | Cần đăng nhập thật / 2FA / OTP | Mở trang trên `orca tab create`, nhắc user tự đăng nhập trên cửa sổ Orca, sau đó agent tiếp tục `orca snapshot`/`orca eval` | Không tự nhập password/OTP | W02 |
+| B02 | capability_optional | Cần quét nhanh 10–100 trang lấy Markdown trước khi thao tác | Dùng `moli fetch <url> --dump markdown --wait domstable` (hoặc `/web-crawl`) ở Bước 1, rồi mới qua Bước 2 (`browser-use`) và Bước 3 (`orca`) | — | W03 |
+| B03 | recovery | Phần tử "không thấy / không bấm được" | Gọi `orca eval` đọc `getBoundingClientRect()` + `getComputedStyle(el)` (`display`, `visibility`, `opacity`, `pointerEvents`, `zIndex`) | — | W02 |
 
 ### Validation và stopping
-Kết luận dựa trên 4 kênh lỗi + ảnh + số đo, không chỉ ảnh. Mỗi lượt chạy < 5s, không LLM. Dừng khi giả thuyết đã có bằng chứng; dọn script + `pkill` Chrome CDP.
+Kết luận dựa trên ảnh chụp (`orca screenshot` hoặc `moli --dump screenshot`) KÈM kết quả kiểm tra DOM/console (`orca eval`/`orca snapshot`). Dừng khi giả thuyết đã có bằng chứng; tắt `moli serve` nền nếu đã bật.
 
 ### Examples
-- **Positive:** claude-in-chrome báo `Frame with ID 0 is showing error page` trên `http://localhost:3000/some-page` → cp `check.mjs` vào project → `node check.mjs` → `/tmp/check.png` + log sạch cả `[console]`/`[pageerror]`/`[http]`/`[reqfail]` → xác nhận trang render, xoá script.
-- **Boundary/failure:** script dùng `waitUntil: "networkidle"` trên Next.js dev → treo vô hạn; sửa thành `waitUntil: "load"` + `page.waitForTimeout(1500)` → chạy xong. Ảnh sạch nhưng log có `[http] 500 /api/x` → KHÔNG báo pass.
+- **Positive (UI QA):** Kiểm tra trang `http://localhost:3000` sau khi sửa CSS → `orca tab create --url "http://localhost:3000" --json` → `orca eval` kiểm tra `getBoundingClientRect()` không bị tràn → `orca screenshot` nghiệm thu.
+- **Positive (Pipeline 3 bước):** Dùng `moli fetch <url> --dump markdown` đọc tài liệu API → dùng `browser-use` + `moli serve --cdp-port 9222 --layout` chạy luồng điền form tự động → mở kết quả cuối trên `orca` để user duyệt và xác nhận OTP.

@@ -111,13 +111,13 @@ rules:
     handler: "harness-events.py knowledgelib-sync · bin/harness-events.py::m_knowledgelib_sync"
     blocking: false
 
-  # ── Browser policy (2026-09-21) ─────────────────────────────────────────
+  # ── Browser policy (2026-09-21, updated 2026-11-25: 3-tier Orca + Moli + browser-use) ──
   orca_browser_only:
     id: R22
     name: orca-browser-only
     kind: hook_event
-    statement: "Cần mở trình duyệt (mở trang, test UI/E2E, chụp màn hình, link OAuth/verify) thì dùng browser tích hợp của Orca qua `orca tab create --url ...` / `orca goto` / `orca snapshot`. CẤM mở trình duyệt mặc định của hệ thống: `open <url|file.html>`, `open -a <browser>`, `xdg-open`, `python -m webbrowser`, `osascript ... open location`. Site chặn browser nhúng (vd Google sign-in) → KHÔNG tự chuyển sang trình duyệt hệ thống, in URL cho user tự dán. Tạm mở khoá bằng env HARNESS_ALLOW_SYSTEM_BROWSER=1."
-    statement_en: "When a browser is needed (open a page, UI/E2E test, screenshot, OAuth/verify link) use the Orca built-in browser via `orca tab create --url ...` / `orca goto` / `orca snapshot`. FORBIDDEN: opening the system default browser (`open <url|file.html>`, `open -a <browser>`, `xdg-open`, `python -m webbrowser`, `osascript ... open location`). If a site blocks the embedded browser (e.g. Google sign-in) do NOT fall back to the system browser; print the URL for the user to paste. Temporary unlock: env HARNESS_ALLOW_SYSTEM_BROWSER=1."
+    statement: "Kiến trúc Browser 3 tầng: (1) Đọc/cào Markdown nhanh (~30MB RAM, headless): dùng `moli fetch <url> --dump markdown --wait domstable`; (2) Luồng thao tác tự hành nhiều bước: dùng `browser-use` kết nối CDP của Moli (`moli serve --cdp-port 9222 --layout`); (3) Mở trình duyệt trực quan, test UI/E2E local, chụp màn hình, OAuth/2FA/OTP: dùng Orca Browser qua `orca tab create --url ...` / `orca goto` / `orca snapshot` / `orca screenshot`. CẤM mở trình duyệt mặc định của hệ thống: `open <url|file.html>`, `open -a <browser>`, `xdg-open`, `python -m webbrowser`, `osascript ... open location`. Site chặn browser nhúng (vd Google sign-in) → KHÔNG tự chuyển sang trình duyệt hệ thống, in URL cho user tự dán. Tạm mở khoá bằng env HARNESS_ALLOW_SYSTEM_BROWSER=1."
+    statement_en: "3-tier Browser Architecture: (1) Fast headless Markdown fetch (~30MB RAM): use `moli fetch <url> --dump markdown --wait domstable`; (2) Multi-step autonomous flows: use `browser-use` connected to Moli CDP (`moli serve --cdp-port 9222 --layout`); (3) Interactive browser, local UI/E2E test, screenshot, OAuth/2FA/OTP: use the Orca built-in browser via `orca tab create --url ...` / `orca goto` / `orca snapshot` / `orca screenshot`. FORBIDDEN: opening the system default browser (`open <url|file.html>`, `open -a <browser>`, `xdg-open`, `python -m webbrowser`, `osascript ... open location`). If a site blocks the embedded browser (e.g. Google sign-in) do NOT fall back to the system browser; print the URL for the user to paste. Temporary unlock: env HARNESS_ALLOW_SYSTEM_BROWSER=1."
     enforce_at: [session]
     event: PreToolUse
     event_action: browser-guard

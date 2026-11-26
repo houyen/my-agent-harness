@@ -24,6 +24,16 @@ Prefix mọi lệnh bằng `rtk` (kể cả trong chain `&&`). Không có filter
 - **Chuẩn hóa Self-Docs (R20)**: File trong `self-docs/*.md` phải có YAML frontmatter chuẩn Canonical (6 trường: `id`, `canonical_question`, `aliases`, `entity_type`, `domain`, `last_verified`) và body không rỗng.
 - **Tự động đồng bộ (R21)**: File `self-docs/` tự động được sanitize (khử PII/tên công ty) và đồng bộ vào KnowledgeLib tập trung khi kết thúc phiên (`Stop`) hoặc chạy `python3 bin/sync-to-knowledgelib.py`.
 
+## Browser Architecture (R22 — 3-Tier Matrix)
+
+Khi tác vụ cần duyệt web hoặc kiểm tra giao diện, chọn đúng công cụ theo 3 tầng (TUYỆT ĐỐI KHÔNG mở trình duyệt mặc định của hệ thống bằng `open`, `xdg-open`, `webbrowser`):
+1. **Tầng 2a — Headless Fetch & Batch Crawl (`moli`)**: Đọc tài liệu, trích xuất Markdown sạch hoặc quét 10–100 URLs siêu nhẹ (~30MB RAM, có render JS):
+   `moli fetch "<url>" --dump markdown --wait domstable --timeout-ms 15000` (hoặc qua skill `/web-crawl`).
+2. **Tầng 1 + 2a — Luồng thao tác tự hành nhiều bước (`browser-use` + `moli` CDP)**: Điền form phức tạp, điều hướng nhiều bước không cần GUI:
+   Bật `moli serve --cdp-port 9222 --layout` và trỏ `browser-use` (`Browser(cdp_url="http://127.0.0.1:9222")`) vào CDP của Moli.
+3. **Tầng 2b — Interactive UI QA & Human-in-the-loop (`orca`)**: Kiểm tra giao diện dev (`localhost`), đo DOM/CSS (`orca eval`), chụp ảnh màn hình (`orca screenshot`), hoặc cần người dùng đăng nhập/nhập 2FA/OTP:
+   `orca tab create --url "<url>"`, `orca snapshot`, `orca eval`, `orca screenshot`.
+
 
 
 ## Communication style (tuỳ chọn — nếu muốn giảm output token)

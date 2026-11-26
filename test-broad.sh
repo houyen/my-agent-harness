@@ -70,6 +70,8 @@ bg '{"tool_name":"Bash","tool_input":{"command":"python3 -m webbrowser http://x.
 bg '{"tool_name":"Bash","tool_input":{"command":"cd app && npm run dev && open http://localhost:3000"}}'; assert 2 "R22: open sau && bị chặn" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"sudo -u me open https://x.io"}}';                assert 0 "R22: wrapper lạ (-u) không đoán, fail-open" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"orca tab create --url https://example.com --json"}}'; assert 0 "R22: orca tab create qua" $?
+bg '{"tool_name":"Bash","tool_input":{"command":"moli fetch https://example.com --dump markdown --wait domstable"}}'; assert 0 "R22: moli fetch qua" $?
+bg '{"tool_name":"Bash","tool_input":{"command":"moli serve --cdp-port 9222 --layout"}}';         assert 0 "R22: moli serve CDP qua" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"open ."}}';                                      assert 0 "R22: open thư mục (Finder) qua" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"open report.pdf"}}';                             assert 0 "R22: open file pdf qua" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"fix: open https://x.io in orca\""}}'; assert 0 "R22: chuỗi trong commit message không chặn nhầm" $?

@@ -254,8 +254,10 @@ def m_browser_guard():
                 HA.record_decision("R22", "orca-browser-only", "Bash", d.get("tool_input"),
                                    hit if isinstance(hit, str) else None, __file__)
             sys.stderr.write("[harness R22 orca-browser-only] Không mở trình duyệt mặc định của hệ thống. "
-                             "Dùng browser của Orca: `orca tab create --url <url> --json` (rồi `orca snapshot`). "
-                             "Site chặn browser nhúng (vd Google sign-in) → in URL cho user tự dán, đừng tự mở Chrome.\n")
+                             "Dùng bộ 3 browser chuẩn: (1) Đọc/cào Markdown nhanh: `moli fetch <url> --dump markdown --wait domstable`; "
+                             "(2) Tự hành nhiều bước: `browser-use` qua Moli CDP (`moli serve --cdp-port 9222 --layout`); "
+                             "(3) Trực quan/UI QA/2FA: `orca tab create --url <url> --json` (rồi `orca snapshot`/`orca screenshot`). "
+                             "Site chặn browser nhúng → in URL cho user tự dán, đừng tự mở Chrome.\n")
             return 2
     except Exception:
         pass
