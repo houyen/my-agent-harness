@@ -23,6 +23,7 @@ Cờ:
 - `--with-knowledgelib` — đăng ký MCP KnowledgeLib GLOBAL (xem mục dưới)
 - `--with-rtk` — cài hook rtk GLOBAL nếu máy chưa có (`rtk init -g --auto-patch`)
 - `--full` — bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
+- `--with-statusline` — cài thanh usage GLOBAL cho Claude Code + Codex (xem mục dưới; không thuộc `--full`)
 
 ## Skill đi kèm (`skills/`)
 
@@ -50,6 +51,28 @@ Cờ:
 - Repo mới nhận quy ước "prefix mọi lệnh bằng `rtk`" qua `CLAUDE.md.template`.
 - `install.sh` luôn báo trạng thái rtk. Thêm `--with-rtk` (hoặc `--full`) thì nếu máy chưa có hook sẽ chạy `rtk init -g --auto-patch`; đã có thì bỏ qua.
 - Không dùng `rtk init` không `-g`: nó chỉ nhét ~5KB chỉ dẫn vào CLAUDE.md dự án, trùng với template và `RTK.md` global.
+
+## Thanh usage (statusline) Claude Code + Codex (tuỳ chọn)
+
+Một lõi chung `bin/usage/core.py`, hai vỏ mỏng, cùng khuôn hai dòng để hai agent đọc như nhau:
+
+```
+<model> · ctx N% · lượt: X in / Y out · + $c · tổng $t
+cache: read R · write W · new N · hit H% · K req | phiên: Q req, P% từ cache
+```
+
+| File | Việc |
+|---|---|
+| `bin/usage/core.py` | Tính toán + định dạng, chỉ thư viện chuẩn |
+| `bin/usage/claude.py` | Vỏ Claude: `statusLine` gọi, payload qua stdin; chi phí lấy từ Claude; vẫn chuyển payload cho hook Orca |
+| `bin/usage/codex_mcp.py` | Vỏ Codex: MCP stdio làm `tui.status_line_provider`; token đọc từ log phiên `$CODEX_HOME/sessions` |
+| `bin/usage/rates.json` | Bảng giá duy nhất (USD/1M token) cho Codex; model chưa có giá hiện "chưa có giá" |
+| `bin/usage/install.py` | `install [--replace] [--only claude\|codex]` · `uninstall` · `status` |
+
+- Cài: `install.sh --with-statusline` (không thuộc `--full`) hoặc `python3 bin/usage/install.py install`. File chép vào `~/.agent-usage/`.
+- Máy đã có statusLine / status_line_provider khác → giữ nguyên và báo; `--replace` mới thay, giá trị cũ cất ở `~/.agent-usage/previous.json` để `uninstall` trả lại.
+- Codex: chỉ sửa khối có đánh dấu `# >>> agent-usage` và một dòng `status_line_provider ... # agent-usage` trong `[tui]`; kiểm TOML bằng `tomllib` trước khi ghi, config hỏng sẵn thì không động vào (exit 1). Bản sao đầu tiên: `config.toml.bak-agent-usage`.
+- Giá Codex đổi → sửa `rates.json` rồi chạy lại `install`.
 
 ## Rule đang gác
 
@@ -158,6 +181,7 @@ bash test-broad.sh     # 51 case (R20 canonical, robustness, R22 browser-guard, 
 bash test-plan.sh      # 31 case: harness-plan (chấm rủi ro, dự án đã cài) + harness-replay
 bash test-rules.sh     # rules-pull (kể cả verdict standard / with_local_overrides)
 bash test-propose.sh   # rules-propose
+bash test-usage.sh     # 44 case: thanh usage (lõi, vỏ Claude, vỏ Codex MCP, installer)
 ```
 
 ## Không mang theo (đặc thù dự án gốc, không vendor-neutral)

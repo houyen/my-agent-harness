@@ -24,6 +24,7 @@ Flags:
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
 - `--full`: all of the above (wiki, skills, knowledgelib, rtk)
+- `--with-statusline`: install the GLOBAL usage statusline for Claude Code + Codex (see below; not part of `--full`)
 
 Install is idempotent. CI and pre-commit are always installed (the vendor-neutral floor); per-vendor adapters are installed only for vendors found in the project.
 
@@ -53,6 +54,20 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 - New repos get the "prefix every command with `rtk`" convention through `CLAUDE.md.template`.
 - `install.sh` always reports rtk status. With `--with-rtk` (or `--full`) it runs `rtk init -g --auto-patch` when the machine has no hook, and does nothing if it is already there.
 - Avoid plain `rtk init` (no `-g`): it only injects ~5 KB of instructions into the project CLAUDE.md, duplicating the template and the global `RTK.md`.
+
+## Usage statusline for Claude Code + Codex (optional)
+
+One shared core `bin/usage/core.py` and two thin shells render the same two-line footer in both agents:
+
+```
+<model> · ctx N% · lượt: X in / Y out · + $c · tổng $t
+cache: read R · write W · new N · hit H% · K req | phiên: Q req, P% từ cache
+```
+
+- `bin/usage/claude.py`: Claude `statusLine` command (payload on stdin, cost from Claude, still forwards the payload to Orca's hook).
+- `bin/usage/codex_mcp.py`: Codex MCP stdio `tui.status_line_provider`; tokens from `$CODEX_HOME/sessions` logs, prices from `bin/usage/rates.json`.
+- `bin/usage/install.py install [--replace] [--only claude|codex]` · `uninstall` · `status`. Also `install.sh --with-statusline` (not part of `--full`). Files go to `~/.agent-usage/`.
+- An existing statusLine / status_line_provider is kept unless `--replace`; the previous value is saved in `~/.agent-usage/previous.json` and restored by `uninstall`. Codex edits are a marked block plus one tagged `[tui]` line, validated with `tomllib` before writing.
 
 ## Active rules
 
@@ -165,6 +180,7 @@ bash test-broad.sh     # 51 cases (R20 canonical, robustness, R22 browser-guard,
 bash test-plan.sh      # 31 cases: harness-plan (risk scoring, installed projects) + harness-replay
 bash test-rules.sh     # rules-pull (including the standard / with_local_overrides verdict)
 bash test-propose.sh   # rules-propose
+bash test-usage.sh     # 44 cases: usage statusline (core, Claude shell, Codex MCP shell, installer)
 ```
 
 ## Not included (specific to the original project, not vendor-neutral)

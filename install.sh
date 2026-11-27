@@ -13,12 +13,14 @@
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
 #   --full             bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
+#   --with-statusline  cài thanh usage GLOBAL cho Claude Code + Codex (bin/usage/install.py; không đè statusLine
+#                      có sẵn — thay thì chạy tay: python3 bin/usage/install.py install --replace). Không nằm trong --full.
 #
 # Idempotent. CI + pre-commit luôn cài (sàn đảm bảo); adapter chỉ cài cho vendor có mặt.
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # nguồn = poc-vendor-neutral/
-ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; GH_HOME=""
+ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; WITH_STATUSLINE=0; GH_HOME=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --vendor) VENDORS="${2:-}"; shift 2;;
@@ -28,6 +30,7 @@ while [ $# -gt 0 ]; do
     --with-wiki) WITH_WIKI=1; shift;;
     --with-knowledgelib) WITH_KNOWLEDGELIB=1; shift;;
     --with-rtk) WITH_RTK=1; shift;;
+    --with-statusline) WITH_STATUSLINE=1; shift;;
     --full) WITH_SKILLS=1; WITH_WIKI=1; WITH_KNOWLEDGELIB=1; WITH_RTK=1; shift;;   # đủ 4 trụ: harness + skills + llmwiki + knowledgelib
     -*) echo "tham số lạ: $1" >&2; exit 1;;
     *) ROOT="$1"; shift;;
@@ -350,6 +353,12 @@ if command -v rtk >/dev/null 2>&1; then
   fi
 else
   warn "  chưa có rtk — CLAUDE.md.template yêu cầu prefix rtk; cài rồi chạy: install.sh --with-rtk"
+fi
+
+# ── thanh usage (statusline) Claude Code + Codex — GLOBAL, opt-in, không thuộc --full ──────
+if [ "$WITH_STATUSLINE" = 1 ]; then
+  log "+ thanh usage (bin/usage/install.py install)"
+  python3 "$SRC/bin/usage/install.py" install 2>&1 | sed 's/^/    /' || warn "  cài thanh usage lỗi — chạy tay: python3 $SRC/bin/usage/install.py install"
 fi
 
 # ── BẢN ĐỒ NĂNG LỰC CHO MODEL (ADR-005) — mắt xích cuối, đừng bỏ ──────────────────────

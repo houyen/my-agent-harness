@@ -1,0 +1,10 @@
+{
+  "_note": "USD / 1M token. Chỉ Codex dùng (Claude Code tự báo chi phí trong payload). Nguồn: https://developers.openai.com/api/docs/pricing, kiểm 2026-11-26. cache_write = ghi cache 30 phút.",
+  "long_context": {"threshold": 272000, "input_mult": 2, "output_mult": 1.5},
+  "models": {
+    "gpt-6.2-sol":   {"input": 2,  "cache_read": 0.10, "cache_write": 2.50,  "output": 10},
+    "gpt-6.2-astra": {"input": 8,  "cache_read": 0.40, "cache_write": 10,    "output": 40},
+    "gpt-6-astra":   {"input": 10, "cache_read": 1,    "cache_write": 12.50, "output": 50},
+    "gpt-6.1-sol":   {"input": 2,  "cache_read": 0.10, "cache_write": 2.50,  "output": 10}
+  }
+}
