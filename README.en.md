@@ -30,7 +30,7 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 
 ## Bundled skills (`skills/`)
 
-31 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
+32 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
 
 | Skill | Purpose | Source (copyright kept) |
 |---|---|---|
