@@ -1,0 +1,5 @@
+interface:
+  display_name: "Agent Reach"
+  short_description: "Search and read social/video platforms (manual only)"
+policy:
+  allow_implicit_invocation: false

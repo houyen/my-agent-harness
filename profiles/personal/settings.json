@@ -19,7 +19,7 @@
     }
   ],
   "skillOverrides": {
-    "agent-reach": "off",
+    "agent-reach": "user-invocable-only",
     "blur": "user-invocable-only",
     "book-to-skill": "off",
     "computer-use": "off",

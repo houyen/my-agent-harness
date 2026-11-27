@@ -19,7 +19,7 @@ Cờ:
 - `--no-verify` — bỏ chạy demo.sh + test-broad.sh sau khi cài
 - `--clean` — gỡ bản cũ trước khi cài
 - `--with-wiki` — seed khung llmwiki/ (raw/, wiki/..., index.md, log.md). Chỉ là thư mục; hiện KHÔNG còn rule nào gác wiki
-- `--with-skills` — cài 30 skill đi kèm trong `skills/` vào `~/.agents/skills` + symlink `~/.claude/skills`. Offline, kiểm `skills/SHA256SUMS`, không cần mạng hay nguồn ngoài. `SKILLS_LIST=a,b` để chọn
+- `--with-skills` — cài 31 skill đi kèm trong `skills/` vào `~/.agents/skills` + symlink `~/.claude/skills`. Offline, kiểm `skills/SHA256SUMS`, không cần mạng hay nguồn ngoài. `SKILLS_LIST=a,b` để chọn
 - `--with-knowledgelib` — đăng ký MCP KnowledgeLib GLOBAL (xem mục dưới)
 - `--with-rtk` — cài hook rtk GLOBAL nếu máy chưa có (`rtk init -g --auto-patch`)
 - `--full` — bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
@@ -27,7 +27,7 @@ Cờ:
 
 ## Skill đi kèm (`skills/`)
 
-30 skill đi kèm repo, **cài offline, không phụ thuộc nguồn ngoài**. Nguồn gốc và giấy phép từng cái nằm ở `skills/NOTICE.md`.
+31 skill đi kèm repo, **cài offline, không phụ thuộc nguồn ngoài**. Nguồn gốc và giấy phép từng cái nằm ở `skills/NOTICE.md`.
 
 | Skill | Việc | Nguồn (giữ nguyên bản quyền) |
 |---|---|---|
