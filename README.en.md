@@ -176,7 +176,7 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 ```bash
 bash demo.sh           # 8 quick cases (R20 path/hook/files, fail-open, wiring generation)
-bash test-broad.sh     # 51 cases (R20 canonical, robustness, R22 browser-guard, decisions.jsonl, redaction)
+bash test-broad.sh     # 66 cases (R20 canonical, robustness, strict files mode + real CI step, R22 browser-guard, decisions.jsonl, redaction)
 bash test-plan.sh      # 31 cases: harness-plan (risk scoring, installed projects) + harness-replay
 bash test-rules.sh     # rules-pull (including the standard / with_local_overrides verdict)
 bash test-propose.sh   # rules-propose

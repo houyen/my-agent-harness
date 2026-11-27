@@ -155,8 +155,19 @@ jobs:
       - run: pip install pyyaml
       - name: harness validator (layer=repo, engine vendored trong repo) trên file .md đổi
         run: |
+          set -euo pipefail
           base="${{{{ github.event.pull_request.base.sha || github.event.before }}}}"
-          files=$(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\\.md$' || true)
+          # push đầu tiên lên nhánh mới: before = 000…0 → kiểm file của commit HEAD.
+          # base khác 0 mà không có trong lịch sử (force-push…) → ĐỎ, không coi là "không đổi gì".
+          # --diff-filter=d: bỏ file đã xoá (validator files báo lỗi file không tồn tại).
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            changed=$(git diff-tree --no-commit-id --name-only -r --diff-filter=d HEAD)
+          elif git cat-file -e "$base^{{commit}}" 2>/dev/null; then
+            changed=$(git diff --name-only --diff-filter=d "$base" HEAD)
+          else
+            echo "::error::base $base không có trong lịch sử repo — không xác định được file đổi"; exit 1
+          fi
+          files=$(printf '%s\\n' "$changed" | grep -E '\\.md$' || true)
           [ -z "$files" ] && {{ echo "no changed .md"; exit 0; }}
           python3 {CLI} files $files
 """

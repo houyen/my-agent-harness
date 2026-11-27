@@ -18,11 +18,23 @@ import os
 import re
 import sys
 
+# Chế độ `files` là SÀN của CI/pre-commit: lỗi cấu hình phải ĐỎ (exit 3), không được xanh giả.
+# Chế độ hook trong phiên (path, claude-hook) vẫn fail-open: lỗi harness không được chặn người dùng.
+_ARGS = sys.argv[1:]
+STRICT = (_ARGS[2:3] if _ARGS[:1] == ["--policy"] else _ARGS[:1]) == ["files"]
+CONFIG_ERROR = 3
+
+
+def bail(msg):
+    """Lỗi cấu hình/đầu vào: files → exit 3 (đỏ); hook → fail-open exit 0."""
+    sys.stderr.write(f"llmwiki-validate: {msg} — {'LỖI' if STRICT else 'fail-open'}\n")
+    sys.exit(CONFIG_ERROR if STRICT else 0)
+
+
 try:
     import yaml
 except ImportError:
-    sys.stderr.write("llmwiki-validate: thiếu pyyaml (pip install pyyaml) — fail-open\n")
-    sys.exit(0)
+    bail("thiếu pyyaml (pip install pyyaml)")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_POLICY = os.path.normpath(os.path.join(HERE, "..", "policy.yaml"))
@@ -81,9 +93,10 @@ def norm(path):
 def load_policy(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
-    except OSError:
+            data = yaml.safe_load(f) or {}
+    except (OSError, yaml.YAMLError):
         return None
+    return data if isinstance(data, dict) else None
 
 
 def rules_for_layer(policy, layer):
@@ -331,8 +344,7 @@ def main():
 
     policy = load_policy(policy_path)
     if policy is None:
-        sys.stderr.write(f"llmwiki-validate: không đọc được policy {policy_path} — fail-open\n")
-        sys.exit(0)
+        bail(f"không đọc được policy {policy_path} (thiếu file, YAML hỏng hoặc không phải mapping)")
 
     mode, rest = args[0], args[1:]
     if mode == "path":
@@ -344,11 +356,14 @@ def main():
         viol = mode_claude_hook(policy)
         block_code = 2
     elif mode == "files":
+        missing = [f for f in rest if not os.path.isfile(f)]
+        if missing:
+            bail(f"file không tồn tại: {', '.join(missing)}")
         viol = mode_files(policy, rest)
         block_code = 1
     else:
-        sys.stderr.write(f"llmwiki-validate: mode lạ '{mode}' — fail-open\n")
-        sys.exit(0)
+        sys.stderr.write(f"llmwiki-validate: mode lạ '{mode}' — LỖI\n")
+        sys.exit(CONFIG_ERROR)
 
     if viol:
         for m in viol:

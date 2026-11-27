@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-broad.sh — bộ test lõi sau khi rút gọn còn 6 rule (R4/R8/R19/R20/R21/R22):
-# R20 canonical (path/files/claude-hook), robustness fail-open, R22 browser-guard.
+# R20 canonical (path/files/claude-hook), robustness fail-open (hook) / fail-closed (files, CI), R22 browser-guard.
 # require_origin biên, files-mode, claude-hook hỏng, và KNOWN GAPS (chứng minh vì sao cần CI).
 set -uo pipefail
 cd "$(dirname "$0")"
@@ -24,7 +24,7 @@ fl "$tmp" "self-docs/engine/good.md" >/dev/null 2>&1;                          a
 fl "$tmp" "self-docs/engine/bad.md" >/dev/null 2>&1;                           assert 1 "repo: self-doc thiếu frontmatter fail" $?
 fl "$tmp" "self-docs/engine/good.md" self-docs/engine/bad.md >/dev/null 2>&1; assert 1 "repo: lô [tốt,xấu] → fail" $?
 fl "$tmp" "notes.md" >/dev/null 2>&1;                                          assert 0 "repo: .md ngoài self-docs không bị soi" $?
-fl "$tmp" "self-docs/engine/nope.md" >/dev/null 2>&1;                          assert 0 "repo: file không tồn tại → bỏ qua" $?
+fl "$tmp" "self-docs/engine/nope.md" >/dev/null 2>&1;                          assert 3 "repo: file không tồn tại → LỖI exit 3 (CI đã lọc file xoá)" $?
 rm -rf "$tmp"
 
 echo "── F. claude-hook robustness (fail-open / không áp dụng = 0) ──"
@@ -37,7 +37,7 @@ hk '{"tool_name":"Write","tool_input":{"file_path":"src/app.ts","content":"x"}}'
 hk '{"tool_name":"Write","tool_input":{"file_path":"llmwiki/raw/x.md","content":"x"}}'; assert 0 "raw/ không còn bị chặn (R1 đã bỏ)" $?
 
 echo "── G. mode/policy robustness ──"
-python3 "$CLI" frobnicate x >/dev/null 2>&1;                        assert 0 "mode lạ → fail-open" $?
+python3 "$CLI" frobnicate x >/dev/null 2>&1;                        assert 3 "mode lạ → exit 3 (hook Claude chỉ chặn ở exit 2)" $?
 python3 "$CLI" --policy /no/such.yaml path self-docs/x.md >/dev/null 2>&1; assert 0 "policy thiếu → fail-open" $?
 python3 "$CLI" path "" >/dev/null 2>&1;                             assert 0 "path rỗng → 0" $?
 r=$(printf '%s' '{"tool_name":"Write","tool_input":{"file_path":"self-docs/x.md","content":"# x"}}' | python3 "$CLI" claude-hook 2>&1 >/dev/null)
@@ -99,6 +99,45 @@ case "$c" in *"mkdir -p a/b"*) assert 0 "R4: phần không nhạy cảm giữ ng
 HARNESS_AUDIT_NO_BASH=1 sh -c "printf '%s' '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}' | python3 $EV audit"
 n=$(grep -c '"cmd": "ls"' "$AD/audit.jsonl");                          assert 0 "HARNESS_AUDIT_NO_BASH=1 không ghi lệnh" "$n"
 grep -q "## Bị chặn (2 lần" "$AD/log.md" && g=1 || g=0;                 assert 1 "log.md có mục Bị chặn" $g
+
+echo "── S. files mode nghiêm (sàn CI/pre-commit) · hook vẫn fail-open ──"
+st="$(mktemp -d)"; mkdir -p "$st/self-docs"; printf '# x\n' > "$st/self-docs/x.md"
+fl "$st" self-docs/x.md >/dev/null 2>&1;                                        assert 1 "files: vi phạm thật → exit 1" $?
+( cd "$st" && python3 "$OLDPWD/$CLI" --policy /no/such.yaml files self-docs/x.md ) >/dev/null 2>&1; assert 3 "files: policy thiếu → exit 3" $?
+printf 'rules: [\n' > "$st/bad.yaml"
+( cd "$st" && python3 "$OLDPWD/$CLI" --policy "$st/bad.yaml" files self-docs/x.md ) >/dev/null 2>&1; assert 3 "files: policy YAML hỏng → exit 3" $?
+printf -- '- a\n- b\n' > "$st/list.yaml"
+( cd "$st" && python3 "$OLDPWD/$CLI" --policy "$st/list.yaml" files self-docs/x.md ) >/dev/null 2>&1; assert 3 "files: policy không phải mapping → exit 3" $?
+python3 "$CLI" --policy "$st/bad.yaml" path self-docs/x.md >/dev/null 2>&1;     assert 0 "path: policy YAML hỏng → vẫn fail-open" $?
+mkdir -p "$st/noyaml"; printf 'raise ImportError("gia lap thieu pyyaml")\n' > "$st/noyaml/yaml.py"
+( cd "$st" && PYTHONPATH="$st/noyaml" python3 "$OLDPWD/$CLI" --policy "$OLDPWD/policy.yaml" files self-docs/x.md ) >/dev/null 2>&1; assert 3 "files: thiếu pyyaml → exit 3" $?
+printf '{' | PYTHONPATH="$st/noyaml" python3 "$CLI" claude-hook >/dev/null 2>&1;  assert 0 "claude-hook: thiếu pyyaml → vẫn fail-open" $?
+
+echo "── T. bước CI sinh bởi gen-converters (chạy thật trong repo git tạm) ──"
+g="$st/gen"; mkdir -p "$g"; cp policy.yaml gen-converters.py "$g/"; cp -R bin "$g/bin"; rm -rf "$g/bin/__pycache__"
+( cd "$g" && python3 gen-converters.py >/dev/null 2>&1 )
+python3 - "$g/out/ci/harness.yml" "$st/ci-step.sh" <<'PY'
+import sys, yaml
+steps = yaml.safe_load(open(sys.argv[1]))["jobs"]["validate"]["steps"]
+run = [s["run"] for s in steps if "llmwiki-validate" in s.get("run", "")][0]
+run = run.replace("${{ github.event.pull_request.base.sha || github.event.before }}", "$BASE")
+open(sys.argv[2], "w").write(run)
+PY
+r="$st/repo"; mkdir -p "$r/harness/poc-vendor-neutral" "$r/self-docs"
+cp -R bin "$r/harness/poc-vendor-neutral/bin"; cp policy.yaml "$r/harness/poc-vendor-neutral/"
+gc(){ git -C "$r" -c user.name=t -c user.email=t@t "$@"; }
+gc init -q; printf '# old\n' > "$r/gone.md"; printf 'x\n' > "$r/a.txt"; gc add -A; gc commit -qm base
+B1=$(gc rev-parse HEAD)
+gc rm -q gone.md; printf 'y\n' > "$r/a.txt"; gc add -A; gc commit -qm del
+ci(){ ( cd "$r" && BASE="$1" bash "$st/ci-step.sh" ) 2>&1; }
+out=$(ci "$B1");                                                                 assert 0 "CI: chỉ xoá .md → không đỏ oan (--diff-filter=d)" $?
+assert 1 "CI: báo no changed .md" "$(grep -qF 'no changed .md' <<<"$out" && echo 1 || echo 0)"
+B2=$(gc rev-parse HEAD); printf '# bad\n' > "$r/self-docs/bad.md"; gc add -A; gc commit -qm bad
+ci "$B2" >/dev/null;                                                             assert 1 "CI: self-doc xấu → đỏ" $?
+ci "0000000000000000000000000000000000000000" >/dev/null;                       assert 1 "CI: before=000…0 (nhánh mới) → kiểm commit HEAD, đỏ" $?
+out=$(ci "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef");                           assert 1 "CI: base không có trong lịch sử → đỏ, không xanh giả" $?
+assert 1 "CI: in ::error rõ ràng" "$(grep -qF '::error::base' <<<"$out" && echo 1 || echo 0)"
+rm -rf "$st"
 
 echo
 printf '\033[1mTỔNG: %d test · %d PASS · %d FAIL\033[0m\n' "$T" "$P" "$F"
