@@ -21,6 +21,7 @@ MOLI_INSTALLER = "https://github.com/lexmount/moli/releases/latest/download/moli
 LEGACY_MARKERS = ("llmwiki/.harness-stamp", "/.claude/harness/")
 DOCS = ("CLAUDE.md", "RTK.md")
 HIDDEN = ("user-invocable-only", "off")
+HINT_MARKER = "bin/skill-hint.py"
 
 
 def home():
@@ -77,6 +78,24 @@ def prune_legacy(settings):
             del hooks[event]
 
 
+def hint_command():
+    return f'python3 "{REPO / HINT_MARKER}"'
+
+
+def hint_installed(settings):
+    cmds = [h.get("command") for g in (settings.get("hooks") or {}).get("UserPromptSubmit", []) for h in g.get("hooks", [])]
+    return hint_command() in cmds
+
+
+def ensure_hint(settings):
+    """Giữ đúng một hook gợi ý skill ở UserPromptSubmit, trỏ về checkout này; hook khác để nguyên."""
+    groups = settings.setdefault("hooks", {}).setdefault("UserPromptSubmit", [])
+    for g in groups:
+        g["hooks"] = [h for h in g.get("hooks", []) if HINT_MARKER not in h.get("command", "")]
+    groups[:] = [g for g in groups if g["hooks"]]
+    groups.append({"hooks": [{"type": "command", "command": hint_command(), "timeout": 5}]})
+
+
 def read_json(path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -111,6 +130,13 @@ def evaluate(profile, priv_arg):
             issues.append(("error", f"settings.json lệch khoá {key}"))
     for ev in sorted(set(legacy_hooks(cur))):
         issues.append(("error", f"hook llmwiki cũ còn ở {ev}"))
+    if not hint_installed(cur):
+        issues.append(("error", "hook gợi ý skill (UserPromptSubmit) chưa cài"))
+    known = set(wanted_links(spec, priv)) | set(spec.get("external", {}))
+    hints = read_json(pdir / "skill-hints.json")
+    for name in hints:
+        if not name.startswith("_") and name not in known:
+            issues.append(("warn", f"skill-hints.json: skill {name} không có trong profile"))
     for doc in DOCS:
         dst = home() / ".claude" / doc
         if not dst.exists():
@@ -167,10 +193,13 @@ def install(args):
     new.update(want)
     if not args.keep_legacy_hooks:
         prune_legacy(new)
+    ensure_hint(new)
     if new != cur:
         parts = [k for k in want if cur.get(k) != want[k]]
         if legacy_hooks(cur) and not args.keep_legacy_hooks:
             parts.append("gỡ hook llmwiki cũ")
+        if not hint_installed(cur):
+            parts.append("hook gợi ý skill")
         changes.append("cập nhật settings.json (" + ", ".join(parts) + ")")
         if not args.dry_run:
             sp.parent.mkdir(parents=True, exist_ok=True)

@@ -1,6 +1,6 @@
 ---
 name: to-questionnaire
-description: Turn a decision you can't fully answer into a questionnaire for someone else to fill in.
+description: "Biến một quyết định tôi không tự trả lời được thành bảng câu hỏi gửi cho đúng người (stakeholder, khách hàng). Gõ tay: /to-questionnaire"
 disable-model-invocation: true
 ---
 
@@ -52,3 +52,7 @@ _Why this matters: it decides whether we provision for burst traffic now or defe
 A closing catch-all: anything we didn't ask that we should know?
 
 </questionnaire-template>
+
+## Bước kế
+
+Khi nhận được câu trả lời → `/grill-me` để chốt phần còn lại, rồi `/to-spec`.

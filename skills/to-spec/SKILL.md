@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
+description: "Tổng hợp cuộc trò chuyện hiện tại thành spec rồi ghi ra tracker hoặc file .scratch/. Không phỏng vấn thêm. Gõ tay: /to-spec"
 disable-model-invocation: true
 ---
 
@@ -73,3 +73,7 @@ A description of the things that are out of scope for this spec.
 Any further notes about the feature.
 
 </spec-template>
+
+## Bước kế
+
+Spec xong → `/to-tickets`. Spec cần người duyệt trước khi làm → `/propose`.

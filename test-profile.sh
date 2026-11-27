@@ -38,8 +38,10 @@ ok "giữ khoá user statusLine" 'grep -q "echo hi" "$HOME/.claude/settings.json
 ok "giữ hook khác" 'grep -q "keep-me" "$HOME/.claude/settings.json"'
 ok "hết hook llmwiki" '! grep -q "harness-stamp" "$HOME/.claude/settings.json"'
 ok "có sao lưu settings" 'ls "$HOME"/.claude/profile-backups/*/settings.json >/dev/null 2>&1'
+ok "cài hook gợi ý skill, giữ hook khác" 'grep -q "bin/skill-hint.py" "$HOME/.claude/settings.json" && grep -q "keep-me" "$HOME/.claude/settings.json"'
 ok "chép CLAUDE.md" 'cmp -s "$HOME/.claude/CLAUDE.md" profiles/personal/CLAUDE.md'
 
+ok "hook gợi ý chỉ một bản" '[ "$(grep -c "bin/skill-hint.py" "$HOME/.claude/settings.json")" -eq 1 ]'
 out2="$(python3 bin/profile.py install --private "$PRIV" 2>&1)"
 ok "lần 2 không đổi gì" '[[ "$out2" == *"không có gì thay đổi"* ]]'
 

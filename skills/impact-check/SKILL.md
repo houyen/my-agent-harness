@@ -1,6 +1,6 @@
 ---
 name: impact-check
-description: Map all callers and dependents of a symbol before modifying shared code
+description: "Lập bản đồ nơi gọi và phụ thuộc của một hàm/class/biến dùng chung TRƯỚC khi sửa nó. Dùng khi user nói 'sửa hàm này có ảnh hưởng gì', 'ai đang gọi', 'đổi tên/đổi chữ ký', 'impact', 'blast radius', hoặc sắp sửa code dùng ở nhiều chỗ. Chỉ đọc, không sửa code. Sửa xong thì chuyển sang safe-change."
 metadata:
   design-standard: "solid-what-how/1"
   contract-version: "1.0.0"
@@ -77,3 +77,7 @@ Dừng khi mọi hit đã có path + line + nhãn Direct/Indirect. Không kết 
 ### Examples
 - **Positive:** đổi chữ ký `formatDate(d)` trong `src/utils/date.ts` → 12 Direct (import) + 2 Indirect (đọc chuỗi output để parse) + 3 test refs liệt kê riêng → báo cáo trong câu trả lời.
 - **Boundary/failure:** config key `retry_limit` không có caller trực tiếp nhưng được đọc qua `config[key]` động → xếp Indirect, KHÔNG báo "unused"; nếu quét không hết thì báo partial kèm phạm vi.
+
+## Bước kế
+
+Đã biết ai gọi → `safe-change`.

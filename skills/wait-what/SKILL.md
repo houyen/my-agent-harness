@@ -1,6 +1,6 @@
 ---
 name: wait-what
-description: "Stop. That last message did not land: re-pitch it."
+description: "Tin nhắn vừa rồi tôi chưa hiểu: nói lại ngắn, có ngữ cảnh, dùng đúng thuật ngữ trong GLOSSARY.md. Gõ tay: /wait-what"
 disable-model-invocation: true
 ---
 

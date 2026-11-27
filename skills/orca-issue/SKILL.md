@@ -34,3 +34,7 @@ Hai chốt cứng: **không tái hiện được thì không sửa**; **repro ch
 - Triệu chứng chưa rõ → clarify.
 - Repro còn đỏ sau fix → quay lại bước 3.
 - User xin tính năng mới, không phải sự cố → chuyển `/propose`.
+
+## Bước kế
+
+Fix xanh → `/qc-code`, rồi `/verify-before-commit`.

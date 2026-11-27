@@ -9,6 +9,7 @@ repo riêng, truyền vào bằng `--private DIR` hoặc biến `MAH_PRIVATE_DIR
 | `CLAUDE.md`, `RTK.md` | Hướng dẫn toàn cục. Đã có bản khác thì chỉ báo lệch; `--force-docs` để thay (có sao lưu). |
 | `settings.json` | Các khoá profile quản trong `~/.claude/settings.json` (model, effort, theme, `skillOverrides`...). Khoá khác giữ nguyên. |
 | `skills.json` | Skill riêng (repo riêng), skill ngoài (Orca, knowledgelib) và công cụ CLI cần có. Skill công khai = mọi thư mục `skills/`. |
+| `skill-hints.json` | Cụm từ → skill gợi ý cho hook `bin/skill-hint.py` (UserPromptSubmit). Hook chỉ in tối đa 2 gợi ý, không chạy skill, tắt bằng `SKILL_HINT_OFF=1`. Log tên skill ở `~/.claude/skill-hint.log`. |
 | `Brewfile` | Công cụ cài qua Homebrew. |
 
 ## Máy mới

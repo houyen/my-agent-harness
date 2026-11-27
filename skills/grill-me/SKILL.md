@@ -1,6 +1,6 @@
 ---
 name: grill-me
-description: A relentless interview to sharpen a plan or design.
+description: "Phỏng vấn dồn tôi về một kế hoạch/thiết kế cho tới khi mọi nhánh quyết định rõ. Gõ tay: /grill-me"
 disable-model-invocation: true
 ---
 

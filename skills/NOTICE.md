@@ -48,6 +48,8 @@ The remaining skills are vendored from their ORIGINAL upstream (not via the repo
   `npx skills`, the exact upstream commit was not recorded at install time). Modified 2026-11-27: added
   `agents/openai.yaml` with `allow_implicit_invocation: false` so Codex runs it only when asked; `SKILL.md` is unchanged.
 
+- Modified 2026-11-27 (all vendored sections above): `description` rewritten with Vietnamese trigger phrases for `impact-check`, `safe-change`, `tdd`, `grilling`, `domain-modeling`, `research`, `writing-for-agents`, `grill-me`, `grill-with-docs`, `to-questionnaire`, `to-spec`, `to-tickets`, `wait-what`; a closing `## Bước kế` section (next-skill pointer) added to `grilling`, `to-questionnaire`, `domain-modeling`, `to-spec`, `to-tickets`, `research`, `propose`, `plan`, `qc-code`, `orca-issue`, `wayfinder`, `tdd`, `impact-check`, `safe-change`. Skill bodies are otherwise unchanged.
+
 Each section below reproduces the license that applies to its component.
 
 ---

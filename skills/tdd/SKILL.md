@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
+description: "Phát triển theo test-first (đỏ rồi xanh, từng lát dọc một). Dùng khi user nói 'tdd', 'viết test trước', 'red-green-refactor', 'làm tính năng có test', 'sửa bug kèm test hồi quy', hoặc cần integration test. Không dùng cho script dùng một lần hay chỉnh giao diện thuần."
 ---
 
 # Test-Driven Development
@@ -36,3 +36,7 @@ When the shape of that interface is itself in question (how deep the module is, 
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
 - **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.
+
+## Bước kế
+
+Xong một lát → `/qc-code`, rồi `/verify-before-commit`.

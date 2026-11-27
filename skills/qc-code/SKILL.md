@@ -153,3 +153,7 @@ Blind-comply với review sai tạo ra bug mới mang vẻ mặt "đã được 
 - Distill từ yêu cầu user 2026-07-15 (qc-code 4 mục + sinh test + auto-hook). Quyết định "nối vào đâu" đã hỏi user → option 3 (LLM thủ công, test auto-hook tất định), phạm vi diff hiện tại.
 - Absorb qua `/propose` → `150726-qc-code-skill`, task `T-260715-04`.
 - **Absorb 2026-07-17 (adapt_mode: dissolve, T-260717-02):** bản đồ 13 nhóm lỗi distill từ `garrytan/gstack` (`review/checklist.md`); severity từ `awesome-skills/code-review-skill`; mục "Nhận review" từ `obra/superpowers` (`receiving-code-review`). Clone depth-1 trong scratchpad/, không vendor bytes.
+
+## Bước kế
+
+PASS → `/verify-before-commit`. CẦN-SỬA → sửa rồi chạy lại `/qc-code`.

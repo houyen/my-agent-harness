@@ -64,3 +64,7 @@ Thân bản đồ:
 4. Ghi lời giải vào ticket, đóng, thêm một dòng vào "Quyết định đã có".
 5. Thêm ticket mới lộ ra, tốt nghiệp sương đã ghim được, loại việc ngoài phạm vi, sửa ticket bị lời giải phủ định.
 6. Không còn gì phải quyết → bàn giao `/propose`.
+
+## Bước kế
+
+Bản đồ đã rõ đường → `/to-tickets` cho từng nhánh.

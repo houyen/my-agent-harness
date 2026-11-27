@@ -54,3 +54,7 @@ metadata:
 ## Examples
 - "thêm nút xuất PDF lá số" → SPEC `docs/PLAN-export-pdf.md`: ảnh hưởng `web/src/...`, 2 phương án (render server vs client) có tradeoff, FR-001..003, SC đo người dùng, màu nút `(default)` → dừng chờ duyệt.
 - "cho người khác xem lá số của tôi" → `[CẦN LÀM RÕ: ai được xem, link có hết hạn không?]` → hỏi trước khi coi SPEC là xong.
+
+## Bước kế
+
+Spec được duyệt → `/plan` (nếu giao cho agent khác) hoặc làm luôn bằng `tdd`.

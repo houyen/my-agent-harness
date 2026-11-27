@@ -1,6 +1,6 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).
+description: "Chia plan/spec thành các ticket lát dọc, mỗi ticket khai báo ticket chặn nó. Gõ tay: /to-tickets"
 disable-model-invocation: true
 ---
 
@@ -103,3 +103,7 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 </issue-template>
 
 In either form, avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+
+## Bước kế
+
+Làm từng ticket bằng `tdd`. Giao cho agent không có ngữ cảnh → `/plan`.

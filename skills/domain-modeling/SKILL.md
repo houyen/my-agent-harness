@@ -1,6 +1,6 @@
 ---
 name: domain-modeling
-description: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.
+description: "Dựng và mài mô hình miền của dự án: thuật ngữ, GLOSSARY.md, ADR. Dùng khi user nói 'glossary', 'thuật ngữ', 'ngôn ngữ chung', 'ADR', 'ghi lại quyết định kiến trúc', 'định nghĩa khái niệm nghiệp vụ', hoặc đang bàn tên gọi trong mã nguồn. Đọc GLOSSARY.md để lấy từ vựng thì không cần skill này."
 ---
 
 # Domain Modeling
@@ -72,3 +72,7 @@ Only offer to create an ADR when all three are true:
 3. **The result of a real trade-off**: there were genuine alternatives and you picked one for specific reasons
 
 If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+
+## Bước kế
+
+Thuật ngữ và quyết định đã chốt → `/to-spec`.

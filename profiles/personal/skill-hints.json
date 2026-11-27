@@ -1,0 +1,19 @@
+{
+  "_comment": "Cụm từ (không cần dấu, không phân biệt hoa thường) → skill gợi ý. Chỉ gợi ý skill gọi-tay hoặc ít khi tự kích hoạt. Thêm cụm mới ở đây, không sửa bin/skill-hint.py.",
+  "grill-me": {"invoke": "/grill-me", "why": "phỏng vấn dồn để làm rõ kế hoạch/yêu cầu", "phrases": ["grill me", "phỏng vấn tôi", "hỏi tôi kỹ", "làm rõ yêu cầu", "stress test", "tôi chưa rõ mình cần gì"]},
+  "grill-with-docs": {"invoke": "/grill-with-docs", "why": "phỏng vấn đồng thời ghi GLOSSARY.md và ADR", "phrases": ["glossary", "thuật ngữ", "ngôn ngữ chung", "adr"]},
+  "to-questionnaire": {"invoke": "/to-questionnaire", "why": "tạo bảng câu hỏi gửi stakeholder/khách hàng", "phrases": ["bảng câu hỏi", "câu hỏi cho khách", "hỏi stakeholder", "hỏi khách hàng", "questionnaire", "gửi cho khách"]},
+  "to-spec": {"invoke": "/to-spec", "why": "tổng hợp cuộc trò chuyện thành spec", "phrases": ["viết spec", "chốt spec", "tổng hợp thành spec", "to spec"]},
+  "to-tickets": {"invoke": "/to-tickets", "why": "chia plan/spec thành ticket có phụ thuộc", "phrases": ["chia ticket", "tách ticket", "break down", "chia nhỏ công việc", "backlog", "user story"]},
+  "propose": {"invoke": "/propose", "why": "viết spec trước khi code rồi dừng chờ duyệt", "phrases": ["propose", "đề xuất trước khi làm", "viết spec trước", "spec trước khi code"]},
+  "plan": {"invoke": "/plan", "why": "mở rộng spec đã duyệt thành kế hoạch cho agent không có ngữ cảnh", "phrases": ["kế hoạch thi hành", "lập plan", "giao cho subagent", "giao cho agent khác"]},
+  "qc-code": {"invoke": "/qc-code", "why": "review code bốn mục có điểm số", "phrases": ["review code", "soát code", "qc code", "kiểm tra code", "chấm điểm code"]},
+  "orca-issue": {"invoke": "/orca-issue", "why": "xử lý sự cố repro-first", "phrases": ["bị lỗi", "lỗi runtime", "regression", "sự cố", "không chạy được", "crash", "bug"]},
+  "teach-me": {"invoke": "/teach-me", "why": "giải thích một thứ theo bảy bước", "phrases": ["giải thích", "teach me", "dạy tôi", "cho tôi hiểu", "explain"]},
+  "wayfinder": {"invoke": "/wayfinder", "why": "lập bản đồ quyết định cho việc quá lớn, còn mơ hồ", "phrases": ["việc quá lớn", "lập bản đồ", "nhiều phiên", "roadmap", "chưa biết bắt đầu từ đâu"]},
+  "wait-what": {"invoke": "/wait-what", "why": "nói lại ngắn gọn, đúng thuật ngữ", "phrases": ["không hiểu", "chưa hiểu", "nói lại đi", "wait what", "giải thích lại"]},
+  "orca-handover": {"invoke": "/orca-handover", "why": "viết file bàn giao cho phiên khác", "phrases": ["bàn giao", "handover", "phiên sau", "hết phiên", "ghi lại để mai"]},
+  "agent-reach": {"invoke": "/agent-reach", "why": "đọc/tìm trên Reddit, X, YouTube, LinkedIn... (gửi truy vấn qua Exa/r.jina.ai)", "phrases": ["reddit", "twitter", "youtube", "bilibili", "xiaohongshu", "linkedin", "thảo luận cộng đồng", "người ta nói gì về"]},
+  "graph-mode": {"invoke": "/graph-mode", "why": "bắt mọi lập luận kết thúc ở chứng cứ xem được (nặng token)", "phrases": ["graph mode", "evidence mode", "dẫn chứng"]},
+  "skill-provenance": {"invoke": "/skill-provenance", "why": "kiểm nguồn gốc và checksum skill", "phrases": ["nguồn skill", "checksum skill", "skill này từ đâu"]}
+}

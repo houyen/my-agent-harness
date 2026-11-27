@@ -48,3 +48,7 @@ DỪNG, không viết plan nửa vời, khi: một yêu cầu không quy về ta
 ## Examples
 - SPEC export CSV có FR-001..003 → 3 task tracer bullet, mỗi task có Files/Interfaces/Verify `pnpm test tests/export.test.ts` → brief giao opencode chép nguyên văn từng task.
 - Khai File structure thì lộ ra API mà SPEC chọn không tồn tại → dừng, báo một lần, quay lại `/propose`.
+
+## Bước kế
+
+Thi hành bằng `tdd`. Xong → `/qc-code`.

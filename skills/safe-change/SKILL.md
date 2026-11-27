@@ -1,6 +1,6 @@
 ---
 name: safe-change
-description: Modify shared code without breaking existing callers
+description: "Sửa code dùng chung mà không làm hỏng chỗ đang gọi nó: đã biết người gọi, sửa nhỏ, chạy lại test của chỗ bị ảnh hưởng. Dùng khi user nói 'sửa an toàn', 'đừng làm vỡ chỗ khác', 'refactor hàm chung', 'đổi API nội bộ'. Chạy impact-check trước nếu chưa biết ai gọi."
 metadata:
   design-standard: "solid-what-how/1"
   contract-version: "1.0.0"
@@ -71,3 +71,7 @@ Chi tiết từng bước (nguồn chân lý cho W01–W06):
 ### Examples
 - **Positive:** thêm tham số optional `timeout=30` vào `fetch_page()` có 4 caller → impact-check liệt kê 4 caller, cả 4 không truyền tham số nên tương thích → test module xanh → "Changed fetch_page signature. Verified 4 callers still work." → cổng kiểm của repo xanh.
 - **Boundary/failure:** đổi kiểu trả về `get_user()` từ dict sang object, 2 caller dùng `user["id"]` → không giữ được tương thích → dừng, báo user (B01), chưa sửa caller khi chưa được duyệt.
+
+## Bước kế
+
+Sửa xong → `/verify-before-commit`.
