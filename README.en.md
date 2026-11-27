@@ -29,17 +29,16 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 
 ## Bundled skills (`skills/`)
 
-10 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
+8 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
 
 | Skill | Purpose | Source (copyright kept) |
 |---|---|---|
 | `impact-check` | Map callers/dependents before changing shared code | Rheinmir/setup @5c5cca9, MIT |
 | `safe-change` | Modify shared code without breaking callers | Rheinmir/setup, MIT |
-| `md-to-html` | Render Markdown to standalone HTML | Rheinmir/setup, MIT |
 | `playwright-verify` | Verify with standalone Playwright `.mjs` scripts | Rheinmir/setup, MIT |
 | `skill-provenance` | Record source + sha256 for skills (`scripts/`) | Rheinmir/setup, MIT |
 | `web-crawl` | Crawl a web page to Markdown (`scripts/`) | Rheinmir/setup, MIT |
-| `caveman`, `caveman-commit`, `caveman-review` | Terse voice, commit and review | JuliusBrussee/caveman v4.0.1, Apache-2.0 |
+| `caveman`, `caveman-commit` | Terse voice; commit messages that keep repo trailers and follow the repo's commit language (`caveman-commit` modified) | JuliusBrussee/caveman v4.0.1, Apache-2.0 |
 | `agent-reach` | Internet research across platforms | Panniantong/Agent-Reach, MIT (the `agent-reach` CLI is installed separately) |
 
 - `caveman*` is a personal preference: installed, but the harness does not switch the mode on (`CLAUDE.md.template` does not force it).

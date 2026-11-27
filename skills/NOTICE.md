@@ -4,7 +4,7 @@ The skills in this directory are vendored, with path adjustments, from
 <https://github.com/rheinmir/setup> at commit `5c5cca9b0ebdd560a99809f740d48eaf127792ca`
 (branch `orca`), where they were authored by Rheinmir and published under the MIT License:
 
-- `impact-check`, `safe-change`, `md-to-html`, `playwright-verify`, `skill-provenance`, `web-crawl`
+- `impact-check`, `safe-change`, `playwright-verify`, `skill-provenance`, `web-crawl` (`impact-check`, `safe-change`: Output Report bỏ 2026-11-27, không ghi `llmwiki/`)
 - `web-crawl/scripts/web-crawl.py`, `web-crawl/scripts/bnal_config.py`
 - `skill-provenance/scripts/skill-provenance.py`
 
@@ -13,9 +13,9 @@ Changes from upstream: script paths in `SKILL.md` point to the installed locatio
 
 The remaining skills are vendored from their ORIGINAL upstream (not via the repository above):
 
-- `caveman`, `caveman-commit`, `caveman-review` — from <https://github.com/JuliusBrussee/caveman>
+- `caveman`, `caveman-commit` — from <https://github.com/JuliusBrussee/caveman> (`caveman-commit` modified 2026-11-27: trailers, commit language, length cap)
   at tag `v4.0.1` (commit `d262ab3882952a59312ff3537cd86d894523c5ab`), licensed under the
-  Apache License 2.0, Copyright 2026 Julius Brussee. Files are unmodified.
+  Apache License 2.0, Copyright 2026 Julius Brussee. `caveman` is unmodified; `caveman-commit` carries a modification notice in its SKILL.md and README.md.
 - `agent-reach` — from <https://github.com/Panniantong/Agent-Reach>
   at commit `94f06c1969dfc1834001269d79d3ad0972d9dee6` (`agent_reach/skill/`: `SKILL.md`,
   `references/`), licensed under the MIT License, Copyright (c) 2025 Agent Eyes. Files are unmodified.
