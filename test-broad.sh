@@ -63,6 +63,8 @@ EV="bin/harness-events.py"
 bg(){ printf '%s' "$1" | python3 "$EV" browser-guard >/dev/null 2>&1; }
 bg '{"tool_name":"Bash","tool_input":{"command":"open https://example.com"}}';                     assert 2 "R22: open <url> bị chặn" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"open -a \"Google Chrome\" https://x.io"}}';       assert 2 "R22: open -a Chrome bị chặn" $?
+bg '{"tool_name":"Bash","tool_input":{"command":"bash -c \"open https://x.io\""}}';                   assert 2 "R22: bash -c <script mở URL> bị chặn" $?
+bg '{"tool_name":"Bash","tool_input":{"command":"bash -c \"echo hi\""}}';                            assert 0 "R22: bash -c lệnh thường không bị chặn" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"open -a Safari"}}';                              assert 2 "R22: open -a Safari bị chặn" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"open report.html"}}';                            assert 2 "R22: open file.html bị chặn" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"xdg-open http://localhost:3000"}}';              assert 2 "R22: xdg-open bị chặn" $?

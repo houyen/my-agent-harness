@@ -198,6 +198,7 @@ def m_knowledgelib():
 _BROWSERS = ("chrome", "safari", "firefox", "brave", "edge", "opera", "vivaldi", "chromium")
 _OPENERS = {"xdg-open", "gnome-open", "sensible-browser", "x-www-browser"}
 _WRAPPERS = {"sudo", "env", "command", "nohup", "exec", "time"}
+_SHELLS = {"bash", "sh", "zsh", "dash"}
 
 
 def _is_system_browser_cmd(cmd):
@@ -221,6 +222,14 @@ def _is_system_browser_cmd(cmd):
         if not t:
             continue
         head, args = os.path.basename(t[0]), t[1:]
+        # bash -c / bash -lc "<script>" (Codex hay gửi argv dạng này): soi tiếp script bên trong.
+        if head in _SHELLS:
+            for i, a in enumerate(args[:-1]):
+                if re.fullmatch(r"-[a-zA-Z]*c[a-zA-Z]*", a):
+                    inner = _is_system_browser_cmd(args[i + 1])
+                    if inner:
+                        return inner
+                    break
         if head in _OPENERS:
             return seg.strip() or True
         if head == "open":

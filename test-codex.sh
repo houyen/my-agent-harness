@@ -60,6 +60,8 @@ check 'R22: Bash open URL bị chặn' '[R22]' Bash command '"open https://x.io"
 check 'R22: Bash orca được phép' allow Bash command '"orca tab create --url https://x.io"'
 check 'R22: Bash argv open URL bị chặn' '[R22]' Bash command '["open","https://x.io"]'
 check 'R22: Bash argv giữ nguyên ranh giới đối số' allow Bash command '["git","commit","-m","test; open https://x.io"]'
+check 'R22: Bash argv bash -lc <script> bị chặn' '[R22]' Bash command '["bash","-lc","open https://x.io"]'
+check 'R22: Bash argv bash -lc lệnh thường được phép' allow Bash command '["bash","-lc","git status"]'
 
 patch 'R20: Add thiếu frontmatter bị chặn' '[R20]' <<'PATCH'
 *** Begin Patch
