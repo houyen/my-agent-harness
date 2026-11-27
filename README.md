@@ -19,7 +19,7 @@ Cờ:
 - `--no-verify` — bỏ chạy demo.sh + test-broad.sh sau khi cài
 - `--clean` — gỡ bản cũ trước khi cài
 - `--with-wiki` — seed khung llmwiki/ (raw/, wiki/..., index.md, log.md). Chỉ là thư mục; hiện KHÔNG còn rule nào gác wiki
-- `--with-skills` — cài 8 skill đi kèm trong `skills/` vào `~/.agents/skills` + symlink `~/.claude/skills`. Offline, kiểm `skills/SHA256SUMS`, không cần mạng hay nguồn ngoài. `SKILLS_LIST=a,b` để chọn
+- `--with-skills` — cài 30 skill đi kèm trong `skills/` vào `~/.agents/skills` + symlink `~/.claude/skills`. Offline, kiểm `skills/SHA256SUMS`, không cần mạng hay nguồn ngoài. `SKILLS_LIST=a,b` để chọn
 - `--with-knowledgelib` — đăng ký MCP KnowledgeLib GLOBAL (xem mục dưới)
 - `--with-rtk` — cài hook rtk GLOBAL nếu máy chưa có (`rtk init -g --auto-patch`)
 - `--full` — bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
@@ -27,22 +27,35 @@ Cờ:
 
 ## Skill đi kèm (`skills/`)
 
-8 skill đi kèm repo, **cài offline, không phụ thuộc nguồn ngoài**. Nguồn gốc và giấy phép từng cái nằm ở `skills/NOTICE.md`.
+30 skill đi kèm repo, **cài offline, không phụ thuộc nguồn ngoài**. Nguồn gốc và giấy phép từng cái nằm ở `skills/NOTICE.md`.
 
 | Skill | Việc | Nguồn (giữ nguyên bản quyền) |
 |---|---|---|
 | `impact-check` | Lập bản đồ nơi gọi / phụ thuộc trước khi sửa code dùng chung | Rheinmir/setup @5c5cca9, MIT |
 | `safe-change` | Sửa code dùng chung mà không làm gãy nơi gọi | Rheinmir/setup, MIT |
-| `playwright-verify` | Verify bằng script Playwright `.mjs` | Rheinmir/setup, MIT |
+| `playwright-verify` | Verify UI theo 3 tầng R22 (Orca, Moli, browser-use); Playwright rời chỉ khi repo yêu cầu | Rheinmir/setup, MIT |
 | `skill-provenance` | Ghi nguồn + sha256 cho skill (`scripts/`) | Rheinmir/setup, MIT |
 | `web-crawl` | Crawl trang web ra Markdown (`scripts/`) | Rheinmir/setup, MIT |
 | `caveman`, `caveman-commit` | Giọng nén; commit message giữ trailer repo, theo ngôn ngữ lịch sử commit (`caveman-commit` đã sửa) | JuliusBrussee/caveman v4.0.1, Apache-2.0 |
-| `agent-reach` | Tra cứu internet đa nền tảng | Panniantong/Agent-Reach, MIT (cần cài riêng CLI `agent-reach`) |
+| `propose`, `plan` | SPEC trước khi code, dừng chờ duyệt; kế hoạch thi hành + brief giao việc | Rheinmir/setup, MIT (viết lại 2026-11-27) |
+| `verify-before-commit` | Chạy gate của repo, soát staging và secret, commit nói vì sao | Rheinmir/setup, MIT (viết lại) |
+| `orca-issue` | Vòng xử lý sự cố repro-first | Rheinmir/setup, MIT (viết lại) |
+| `build-now-adapt-later` | Làm phần chắc trước, cách ly ẩn số sau một adapter | Rheinmir/setup, MIT (bỏ Output Report) |
+| `wayfinder` | Bản đồ ticket quyết định cho việc lớn còn mù mờ (GitHub issues hoặc file markdown) | Rheinmir/setup, MIT (viết lại) |
+| `qc-code` | Review code 4 mục kiểu senior + test tái hiện bug | Rheinmir/setup, MIT (viết lại) |
+| `graph-mode`, `fable5` | Chế độ chat: chuỗi chứng cứ; giao thức suy luận | Rheinmir/setup, MIT |
+| `orca-handover` | Viết file bàn giao 7 mục cho phiên sau | Rheinmir/setup, MIT (viết lại) |
+| `teach-me` | Giải thích một thứ theo 7 bước, chứng bằng chạy thật | Rheinmir/setup, MIT (viết lại) |
+| `scroll-effects` | 7 hiệu ứng cuộn vanilla | Rheinmir/setup, MIT |
 
 - `caveman*` chỉ là sở thích cá nhân: cài sẵn nhưng harness không bật mode (`CLAUDE.md.template` không ép).
 - `orca-cli` đi kèm ứng dụng Orca; `failure-flywheel` không đi kèm vì đầu ra ghi vào `llmwiki/wiki/` (rule đã bỏ).
 - Đã có bản khác trong `~/.agents/skills` thì **không đè**, chỉ báo lệch.
 - Bảo trì: sửa file trong `skills/` thì chạy lại `cd skills && find . -type f ! -name SHA256SUMS ! -path '*/__pycache__/*' ! -name .DS_Store | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
+
+## Hồ sơ toàn cục (`profiles/`)
+
+`bash install.sh --profile personal --private <repo-riêng>` cài hồ sơ `~/.claude` (skill symlink về repo, `skillOverrides`, CLAUDE.md, gỡ hook llmwiki cũ) rồi thoát. Kiểm: `python3 bin/harness-doctor.py --profile personal`. Chi tiết và các bước máy mới: `profiles/personal/README.md`. Test: `bash test-profile.sh`.
 
 ## rtk (tuỳ chọn)
 

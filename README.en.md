@@ -20,7 +20,7 @@ Flags:
 - `--no-verify`: skip running demo.sh + test-broad.sh after install
 - `--clean`: remove a previous install first
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
-- `--with-skills`: install the 8 bundled skills in `skills/` into `~/.agents/skills` with symlinks from `~/.claude/skills`. Offline, verified against `skills/SHA256SUMS`, no network or external source. `SKILLS_LIST=a,b` to pick a subset
+- `--with-skills`: install the 19 bundled skills in `skills/` into `~/.agents/skills` with symlinks from `~/.claude/skills`. Offline, verified against `skills/SHA256SUMS`, no network or external source. `SKILLS_LIST=a,b` to pick a subset
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
 - `--full`: all of the above (wiki, skills, knowledgelib, rtk)
@@ -30,22 +30,35 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 
 ## Bundled skills (`skills/`)
 
-8 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
+30 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
 
 | Skill | Purpose | Source (copyright kept) |
 |---|---|---|
 | `impact-check` | Map callers/dependents before changing shared code | Rheinmir/setup @5c5cca9, MIT |
 | `safe-change` | Modify shared code without breaking callers | Rheinmir/setup, MIT |
-| `playwright-verify` | Verify with standalone Playwright `.mjs` scripts | Rheinmir/setup, MIT |
+| `playwright-verify` | Verify UI via the R22 three tiers (Orca, Moli, browser-use); standalone Playwright only when a repo asks | Rheinmir/setup, MIT |
 | `skill-provenance` | Record source + sha256 for skills (`scripts/`) | Rheinmir/setup, MIT |
 | `web-crawl` | Crawl a web page to Markdown (`scripts/`) | Rheinmir/setup, MIT |
 | `caveman`, `caveman-commit` | Terse voice; commit messages that keep repo trailers and follow the repo's commit language (`caveman-commit` modified) | JuliusBrussee/caveman v4.0.1, Apache-2.0 |
-| `agent-reach` | Internet research across platforms | Panniantong/Agent-Reach, MIT (the `agent-reach` CLI is installed separately) |
+| `propose`, `plan` | Spec before code with an approval stop; execution plan + delegation brief | Rheinmir/setup, MIT (rewritten 2026-11-27) |
+| `verify-before-commit` | Run the repo's gate, check staging for secrets, commit message says why | Rheinmir/setup, MIT (rewritten) |
+| `orca-issue` | Repro-first incident loop | Rheinmir/setup, MIT (rewritten) |
+| `build-now-adapt-later` | Build around an unknown, quarantine it behind one adapter | Rheinmir/setup, MIT (Output Report removed) |
+| `wayfinder` | Map a large, foggy chunk of work as decision tickets (GitHub issues or a markdown file) | Rheinmir/setup, MIT (rewritten) |
+| `qc-code` | Senior four-part code review + red repro tests | Rheinmir/setup, MIT (rewritten) |
+| `graph-mode`, `fable5` | Chat modes: evidence chains; reasoning protocol | Rheinmir/setup, MIT |
+| `orca-handover` | Write a seven-part handover file for the next session | Rheinmir/setup, MIT (rewritten) |
+| `teach-me` | Explain one thing in seven steps, proven by running it | Rheinmir/setup, MIT (rewritten) |
+| `scroll-effects` | Seven vanilla scroll effects | Rheinmir/setup, MIT |
 
 - `caveman*` is a personal preference: installed, but the harness does not switch the mode on (`CLAUDE.md.template` does not force it).
 - `orca-cli` ships with the Orca app; `failure-flywheel` is not bundled because it writes into `llmwiki/wiki/` (rules removed).
 - An existing copy under `~/.agents/skills` is **never overwritten**, only reported as different.
 - Maintenance: after editing files in `skills/`, regenerate checksums with `cd skills && find . -type f ! -name SHA256SUMS ! -path '*/__pycache__/*' ! -name .DS_Store | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
+
+## Global profile (`profiles/`)
+
+`bash install.sh --profile personal --private <private-repo>` installs the `~/.claude` profile (skills symlinked to this checkout, `skillOverrides`, CLAUDE.md, legacy llmwiki hooks removed) and exits. Check with `python3 bin/harness-doctor.py --profile personal`. Details and new-machine steps: `profiles/personal/README.md` (Vietnamese). Test: `bash test-profile.sh`.
 
 ## rtk (optional)
 

@@ -1,7 +1,7 @@
 ---
 name: skill-provenance
 disable-model-invocation: true
-description: Ghi và kiểm provenance (nguồn + sha256 checksum) cho skill — dùng khi 'cài skill từ ngoài', 'skill này từ đâu', 'audit nguồn skill', 'checksum skill', 'supply-chain skill', phát hiện skill bị sửa lén; bổ trợ orca-sec-scans. Chạy ~/.claude/skills/skill-provenance/scripts/skill-provenance.py. /skill-provenance
+description: Ghi và kiểm provenance (nguồn + sha256 checksum) cho skill — dùng khi 'cài skill từ ngoài', 'skill này từ đâu', 'audit nguồn skill', 'checksum skill', 'supply-chain skill', phát hiện skill bị sửa lén. Chạy ~/.claude/skills/skill-provenance/scripts/skill-provenance.py. /skill-provenance
 metadata:
   design-standard: "solid-what-how/1"
   contract-version: "1.0.0"
@@ -14,7 +14,7 @@ metadata:
 
 # Skill: skill-provenance
 
-Sổ nguồn gốc + toàn vẹn cho từng skill. `orca-sec-scans` quét vuln/secret trong NỘI DUNG;
+Sổ nguồn gốc + toàn vẹn cho từng skill. Công cụ quét bảo mật soi vuln/secret trong NỘI DUNG;
 skill này trả lời hai câu hỏi khác của chuỗi cung ứng (supply-chain): skill **từ đâu tới**
 và **có bị sửa lén sau khi cài không**. Store là `fdk/skills.provenance.json` (nguồn +
 ngày ghi + sha256 mọi file trong `skills/<name>/`). Verify bằng cách tính lại checksum và
@@ -29,7 +29,7 @@ so với sổ — lệch = MODIFIED, có skill trên đĩa mà chưa ghi sổ = 
   - Nghi ngờ / muốn kiểm **skill có bị sửa ngoài luồng** không → `check`.
   - Hỏi "skill này **từ đâu** ra", "audit nguồn skill", "checksum skill", "supply-chain skill".
   - CI muốn chặn skill lạ hoặc skill bị sửa mà chưa cập nhật sổ.
-- **Non-goals:** không quét vuln/secret trong nội dung skill (việc của `orca-sec-scans`); không tự đoán nguồn skill.
+- **Non-goals:** không quét vuln/secret trong nội dung skill (việc của công cụ quét bảo mật như `gitleaks`/`/security-review`); không tự đoán nguồn skill.
 
 ### Mental model
 `skills/<name>/ (file trên đĩa) → sha256 mỗi file → so với sổ fdk/skills.provenance.json → OK | MODIFIED (lệch) | UNTRACKED (trên đĩa chưa ghi sổ) | MISSING (trong sổ, không còn trên đĩa)`. `record` = ghi/ghi đè mục sổ; `check` = đọc so.
@@ -46,7 +46,7 @@ so với sổ — lệch = MODIFIED, có skill trên đĩa mà chưa ghi sổ = 
 ### Rules và capabilities
 - RULE-01 (MUST): **Không tự bịa nguồn.** `--source` phải là URL/ref thật hoặc `local-authored`; provenance sai còn tệ hơn không có.
 - RULE-02 (MUST): **record sau MỌI lần cài/sửa hợp lệ** — sổ là nguồn chân lý; skill sửa mà không re-record sẽ bị CI chặn như sửa đổi lạ (đúng ý đồ).
-- RULE-03 (MUST): **Không thay `orca-sec-scans`** — skill này lo provenance/toàn vẹn, không quét vuln/secret nội dung; dùng cả hai.
+- RULE-03 (MUST): **Không thay công cụ quét bảo mật** — skill này lo provenance/toàn vẹn, không quét vuln/secret nội dung.
 - RULE-04 (MUST): `check --ci` coi MISSING (skill đã gỡ) là không-phải-lỗi; chỉ MODIFIED/UNTRACKED mới chặn.
 - RULE-05 (MUST): Store `fdk/skills.provenance.json` là file curated — commit cùng thay đổi skill, đừng để drift.
 - Capabilities: đọc file skill + tính hash; ghi sổ provenance cục bộ. Không mạng.

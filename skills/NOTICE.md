@@ -4,7 +4,7 @@ The skills in this directory are vendored, with path adjustments, from
 <https://github.com/rheinmir/setup> at commit `5c5cca9b0ebdd560a99809f740d48eaf127792ca`
 (branch `orca`), where they were authored by Rheinmir and published under the MIT License:
 
-- `impact-check`, `safe-change`, `playwright-verify`, `skill-provenance`, `web-crawl` (`impact-check`, `safe-change`: Output Report bỏ 2026-11-27, không ghi `llmwiki/`)
+- `impact-check`, `safe-change`, `playwright-verify`, `skill-provenance`, `web-crawl` (`impact-check`, `safe-change`: Output Report bỏ 2026-11-27, không ghi `llmwiki/`; `skill-provenance`: 2026-11-27 bỏ nhắc tới `orca-sec-scans`)
 - `web-crawl/scripts/web-crawl.py`, `web-crawl/scripts/bnal_config.py`
 - `skill-provenance/scripts/skill-provenance.py`
 
@@ -16,10 +16,33 @@ The remaining skills are vendored from their ORIGINAL upstream (not via the repo
 - `caveman`, `caveman-commit` — from <https://github.com/JuliusBrussee/caveman> (`caveman-commit` modified 2026-11-27: trailers, commit language, length cap)
   at tag `v4.0.1` (commit `d262ab3882952a59312ff3537cd86d894523c5ab`), licensed under the
   Apache License 2.0, Copyright 2026 Julius Brussee. `caveman` is unmodified; `caveman-commit` carries a modification notice in its SKILL.md and README.md.
-- `agent-reach` — from <https://github.com/Panniantong/Agent-Reach>
-  at commit `94f06c1969dfc1834001269d79d3ad0972d9dee6` (`agent_reach/skill/`: `SKILL.md`,
-  `references/`), licensed under the MIT License, Copyright (c) 2025 Agent Eyes. Files are unmodified.
-  The skill only drives the separate `agent-reach` CLI, which is NOT bundled; install it from upstream.
+- Added 2026-11-27, from <https://github.com/rheinmir/setup> (branch `orca`, installed via `npx skills`,
+  MIT License, Copyright (c) 2026 Rheinmir — same license text as the first section below):
+  - `propose` (upstream folder tree `d762bb8b93ded6a0e6274c18b8094938317d2b7a`)
+  - `plan` (upstream folder tree `c4c9aded0e8ccc6e70a138c36196eed2a90489bc`)
+  - `verify-before-commit` (upstream folder tree `c494cb858c71b1253c0a2b19986ad91cbc3daf73`)
+  - `orca-issue` (upstream folder tree `5a858efb74751920503a395a8707e8787e2724b7`)
+  - `build-now-adapt-later` (upstream folder tree `c105f65f80a45a08488595551c8a5a3b8200cc5d`)
+  - `wayfinder` (upstream folder tree `85917b68aff51fade00be865129e4e6322506040`)
+  - `qc-code` (upstream folder tree `9e46f4ee49f908d9fc940ffd6bf66c74be24da29`)
+  - `graph-mode` (upstream folder tree `3e60c65e94371887359e46b36fe1d7b823fae830`)
+  - `teach-me` (upstream folder tree `7efb341590cabdb98eb106d056818468f6e0b761`)
+  - `fable5` (upstream folder tree `b869cddc8fff45c106b8826d71d44d2dec54c68b`)
+  - `orca-handover` (upstream folder tree `35538130d92da6845b55a9b33e9df7a04577392a`)
+  - `scroll-effects` (upstream folder tree `cb6f4fb33a6460c76fcfff4595b18b6513b51758`)
+  `fable5` and `scroll-effects` are unmodified. The other ten were rewritten on 2026-11-27 to drop the
+  `llmwiki/` wiki, task-ledger, validator and `harness/scripts` dependencies; each carries a
+  `metadata.origin` line describing the change. Some of them credit ideas distilled upstream from
+  `obra/superpowers` (MIT; `orca-issue`, `qc-code`), `mattpocock/skills` (`wayfinder`),
+  `garrytan/gstack` (`qc-code`) and `dreambigou/eli5` (MIT; `teach-me`); no code from those
+  projects is copied here.
+
+- Added 2026-11-27, from <https://github.com/mattpocock/skills> at commit `6f7f7831a625f040a8e06a0e7954826b87ce775a`
+  (installed via `npx skills`, MIT License, Copyright (c) 2026 Matt Pocock — license text in the last section below),
+  without the `agents/openai.yaml` files: `grilling`, `grill-me`, `to-questionnaire`, `domain-modeling`,
+  `grill-with-docs`, `wait-what`, `tdd`, `research`, `writing-for-agents` (unmodified), `to-spec`, `to-tickets`
+  (modified: with no issue tracker configured they default to local files under `.scratch/<feature-slug>/`
+  instead of asking for `/setup-matt-pocock-skills`, which is not vendored).
 
 Each section below reproduces the license that applies to its component.
 
@@ -30,32 +53,6 @@ Each section below reproduces the license that applies to its component.
 MIT License
 
 Copyright (c) 2026 Rheinmir
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-## Agent-Reach (MIT)
-
-MIT License
-
-Copyright (c) 2025 Agent Eyes
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -334,3 +331,29 @@ Apache License
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+---
+
+## mattpocock/skills (MIT)
+
+MIT License
+
+Copyright (c) 2026 Matt Pocock
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
