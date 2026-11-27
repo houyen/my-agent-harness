@@ -13,6 +13,8 @@
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
 #   --full             bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
+#   --profile NAME     cài hồ sơ ~/.claude từ profiles/NAME (skill, settings, CLAUDE.md) rồi THOÁT, không cài vào dự án.
+#                      Kèm được: --private DIR (repo riêng có skills/), --dry-run, --with-moli, --force-docs.
 #   --with-statusline  cài thanh usage GLOBAL cho Claude Code + Codex (bin/usage/install.py; không đè statusLine
 #                      có sẵn — thay thì chạy tay: python3 bin/usage/install.py install --replace). Không nằm trong --full.
 #
@@ -20,7 +22,7 @@
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # nguồn = poc-vendor-neutral/
-ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; WITH_STATUSLINE=0; GH_HOME=""
+ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; WITH_STATUSLINE=0; GH_HOME=""; PROFILE=""; PROFILE_ARGS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --vendor) VENDORS="${2:-}"; shift 2;;
@@ -31,11 +33,17 @@ while [ $# -gt 0 ]; do
     --with-knowledgelib) WITH_KNOWLEDGELIB=1; shift;;
     --with-rtk) WITH_RTK=1; shift;;
     --with-statusline) WITH_STATUSLINE=1; shift;;
+    --profile) PROFILE="${2:-}"; shift 2;;
+    --private) PROFILE_ARGS+=(--private "${2:-}"); shift 2;;
+    --dry-run|--with-moli|--force-docs|--keep-legacy-hooks) PROFILE_ARGS+=("$1"); shift;;
     --full) WITH_SKILLS=1; WITH_WIKI=1; WITH_KNOWLEDGELIB=1; WITH_RTK=1; shift;;   # đủ 4 trụ: harness + skills + llmwiki + knowledgelib
     -*) echo "tham số lạ: $1" >&2; exit 1;;
     *) ROOT="$1"; shift;;
   esac
 done
+if [ -n "$PROFILE" ]; then
+  exec python3 "$SRC/bin/profile.py" install --profile "$PROFILE" ${PROFILE_ARGS[@]+"${PROFILE_ARGS[@]}"}
+fi
 ROOT="$(cd "$ROOT" && pwd)"
 DEST="$ROOT/harness/poc-vendor-neutral"; OUT="$DEST/out"
 log(){ printf '\033[1;32m[install]\033[0m %s\n' "$*"; }

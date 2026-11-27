@@ -1,0 +1,45 @@
+{
+  "model": "opus",
+  "effortLevel": "medium",
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "low"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "theme": "auto",
+  "tui": "fullscreen",
+  "cleanupPeriodDays": 90,
+  "idleCompaction": false,
+  "deniedMcpServers": [
+    {
+      "serverName": "gitnexus"
+    }
+  ],
+  "skillOverrides": {
+    "agent-reach": "off",
+    "blur": "user-invocable-only",
+    "book-to-skill": "off",
+    "computer-use": "off",
+    "dark-mode-maker": "user-invocable-only",
+    "design-taste-frontend": "user-invocable-only",
+    "gsap-scrolltrigger-pin": "user-invocable-only",
+    "infinite-webgl-grid": "user-invocable-only",
+    "jenkins-agent-l3-deploy": "off",
+    "knowledgelib": "user-invocable-only",
+    "lenis-smooth-scroll": "user-invocable-only",
+    "mask-reveal-transition": "user-invocable-only",
+    "orca-issue": "user-invocable-only",
+    "plan": "user-invocable-only",
+    "propose": "user-invocable-only",
+    "qc-code": "user-invocable-only",
+    "redesign-existing-projects": "user-invocable-only",
+    "tc-run": "off",
+    "teach-me": "user-invocable-only",
+    "threejs-particle-morph": "user-invocable-only",
+    "uat-nonit-testcase": "off",
+    "wayfinder": "user-invocable-only"
+  }
+}

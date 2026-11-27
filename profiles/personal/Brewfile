@@ -1,0 +1,14 @@
+# Công cụ CLI cho hồ sơ cá nhân. Cài: brew bundle --file profiles/personal/Brewfile
+# Không có trong Homebrew (cài tay, xem profiles/personal/README.md): Claude Code, Orca, Moli, Codex.
+tap "anomalyco/tap"
+brew "git"
+brew "gh"
+brew "jq"
+brew "ripgrep"
+brew "python@3.14"
+brew "node"
+brew "pnpm"
+brew "uv"
+brew "rtk"
+brew "gitleaks"
+brew "anomalyco/tap/opencode-v2"

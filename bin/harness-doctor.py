@@ -12,6 +12,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tomllib
 
 
@@ -256,10 +257,24 @@ def usage(report, source, destination):
             report("OK" if matches else "WARN", f"{path}: {'khớp' if matches else 'lệch'}")
 
 
+def profile_check(report, source, name, private):
+    cmd = [sys.executable, str(source / "bin" / "profile.py"), "check", "--profile", name, "--json"]
+    if private:
+        cmd += ["--private", private]
+    run = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    rows = json.loads(run.stdout or "[]")
+    for row in rows:
+        report({"error": "FAIL", "warn": "WARN"}.get(row["level"], "OK"), row["message"])
+    if not rows:
+        report("OK", f"profile {name} khớp")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", type=Path, default=Path.cwd())
     parser.add_argument("--json", action="store_true", help="In báo cáo JSON")
+    parser.add_argument("--profile", help="kiểm thêm hồ sơ ~/.claude theo profiles/<tên> (bin/profile.py check)")
+    parser.add_argument("--private", help="repo riêng cho --profile (mặc định $MAH_PRIVATE_DIR)")
     args = parser.parse_args()
     source = Path(__file__).resolve().parent.parent
     home = Path.home()
@@ -268,7 +283,7 @@ def main():
     sections = {name: [] for name in (
         "Repo harness", "Skill vendored", "Skill đã cài", "Lock", "Hiển thị ở Claude",
         "Alias và symlink", "Dependency", "Codex", "Thanh usage",
-    )}
+    ) + (("Hồ sơ",) if args.profile else ())}
 
     def reporter(section):
         def report(status, message):
@@ -303,6 +318,8 @@ def main():
     check("Codex", codex_config, codex_home)
     check("Codex", project_hook, args.project.absolute())
     check("Thanh usage", usage, source / "bin" / "usage", usage_home)
+    if args.profile:
+        check("Hồ sơ", profile_check, source, args.profile, args.private)
 
     for section, rows in sections.items():
         if rows:
