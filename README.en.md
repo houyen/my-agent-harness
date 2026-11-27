@@ -180,6 +180,10 @@ KNOWLEDGELIB_HOME=/path/to/knowledgelib_data bash install.sh /path/to/project --
 
 **Moving to a home server later:** change one place, the `mcpServers.knowledgelib` entry in `~/.claude.json` (`command` / `args` / `env`). No project needs touching, since every repo points to that single global entry.
 
+## Doctor
+
+Run `python3 bin/harness-doctor.py [--project <path>] [--json]` with Python 3.11 or later. Doctor reads the checkout, skills, local configuration, and usage statusline files, and lists command paths from `PATH`. The project defaults to the current directory. It exits 1 if any check reports `FAIL` and 0 otherwise. Open `/hooks` in Codex to verify trust.
+
 ## Tests
 
 ```bash
@@ -189,6 +193,7 @@ bash test-plan.sh      # 31 cases: harness-plan (risk scoring, installed project
 bash test-rules.sh     # rules-pull (including the standard / with_local_overrides verdict)
 bash test-propose.sh   # rules-propose
 bash test-usage.sh     # 44 cases: usage statusline (core, Claude shell, Codex MCP shell, installer)
+bash test-doctor.sh    # read-only diagnostics, JSON, and exit codes
 ```
 
 ## Not included (specific to the original project, not vendor-neutral)

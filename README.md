@@ -181,6 +181,10 @@ Mặc định `KNOWLEDGELIB_HOME=~/Documents/Repo/knowledgelib_data`. Idempotent
 
 **Di chuyển lên server nhà sau này:** chỉ sửa 1 chỗ — entry `mcpServers.knowledgelib` trong `~/.claude.json` (đổi `command`/`args`/`env` sang cách trỏ tới server mới) — không đụng project nào khác, vì mọi repo đều trỏ chung 1 entry global này.
 
+## Doctor
+
+Chạy `python3 bin/harness-doctor.py [--project <đường_dẫn>] [--json]` với Python 3.11 trở lên. Doctor chỉ đọc repo, skill, cấu hình và thanh usage trên máy, đồng thời liệt kê đường dẫn các lệnh trên `PATH`. Dự án mặc định là thư mục hiện tại. Mã thoát là 1 nếu có `FAIL`, còn lại là 0. Xem `/hooks` trong Codex để xác minh trust.
+
 ## Test
 
 ```bash
@@ -190,6 +194,7 @@ bash test-plan.sh      # 31 case: harness-plan (chấm rủi ro, dự án đã c
 bash test-rules.sh     # rules-pull (kể cả verdict standard / with_local_overrides)
 bash test-propose.sh   # rules-propose
 bash test-usage.sh     # 44 case: thanh usage (lõi, vỏ Claude, vỏ Codex MCP, installer)
+bash test-doctor.sh    # chẩn đoán chỉ đọc, JSON và mã thoát
 ```
 
 ## Không mang theo (đặc thù dự án gốc, không vendor-neutral)
