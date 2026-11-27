@@ -27,7 +27,9 @@ SERVER = "agent-usage"
 BEGIN = "# >>> agent-usage (my-agent-harness) >>>"
 END = "# <<< agent-usage <<<"
 TAG = "# agent-usage"
-PY = sys.executable or "python3"
+# python3 trên PATH (symlink ổn định, vd /opt/homebrew/bin/python3), không phải sys.executable:
+# đường dẫn có số phiên bản (python@3.14) gãy khi Homebrew nâng Python.
+PY = shutil.which("python3") or sys.executable or "python3"
 
 
 def home():
