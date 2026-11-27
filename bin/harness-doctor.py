@@ -37,6 +37,9 @@ def digest(path):
         return hashlib.file_digest(handle, "sha256").hexdigest()
 
 
+IGNORED = {"__pycache__", ".DS_Store"}
+
+
 def tree(directory, ancestors=frozenset()):
     """Hash files by relative path, including files reached through symlinks."""
     info = directory.stat()
@@ -46,6 +49,8 @@ def tree(directory, ancestors=frozenset()):
     ancestors = ancestors | {identity}
     entries = {}
     for path in sorted(directory.iterdir()):
+        if path.name in IGNORED:
+            continue  # cache sinh ra khi chạy script của skill, không phải nội dung skill
         if stat.S_ISDIR(path.stat().st_mode):
             for name, value in tree(path, ancestors).items():
                 entries[f"{path.name}/{name}"] = value

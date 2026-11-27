@@ -54,6 +54,7 @@ for args in (("init", "-q"), ("add", "--", "bin", "skills"),
     subprocess.run(["git", "-C", str(repo), *args], check=True)
 
 shutil.copytree(skills / "matching", agents / "matching")
+write(agents / "matching/__pycache__/x.cpython-314.pyc", "cache")  # cache sinh khi chạy script: không được tính là lệch
 shutil.copytree(skills / "drifting", agents / "drifting")
 link(claude / "matching", "../../.agents/skills/matching")
 link(claude / "alias", "matching")

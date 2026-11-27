@@ -42,7 +42,7 @@ Cờ:
 - `caveman*` chỉ là sở thích cá nhân: cài sẵn nhưng harness không bật mode (`CLAUDE.md.template` không ép).
 - `orca-cli` đi kèm ứng dụng Orca; `failure-flywheel` không đi kèm vì đầu ra ghi vào `llmwiki/wiki/` (rule đã bỏ).
 - Đã có bản khác trong `~/.agents/skills` thì **không đè**, chỉ báo lệch.
-- Bảo trì: sửa file trong `skills/` thì chạy lại `cd skills && find . -type f ! -name SHA256SUMS | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
+- Bảo trì: sửa file trong `skills/` thì chạy lại `cd skills && find . -type f ! -name SHA256SUMS ! -path '*/__pycache__/*' ! -name .DS_Store | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
 
 ## rtk (tuỳ chọn)
 

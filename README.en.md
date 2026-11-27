@@ -20,7 +20,7 @@ Flags:
 - `--no-verify`: skip running demo.sh + test-broad.sh after install
 - `--clean`: remove a previous install first
 - `--with-wiki`: seed an `llmwiki/` skeleton (raw/, wiki/..., index.md, log.md). Directories only; no rule guards the wiki any more
-- `--with-skills`: install the 10 bundled skills in `skills/` into `~/.agents/skills` with symlinks from `~/.claude/skills`. Offline, verified against `skills/SHA256SUMS`, no network or external source. `SKILLS_LIST=a,b` to pick a subset
+- `--with-skills`: install the 8 bundled skills in `skills/` into `~/.agents/skills` with symlinks from `~/.claude/skills`. Offline, verified against `skills/SHA256SUMS`, no network or external source. `SKILLS_LIST=a,b` to pick a subset
 - `--with-knowledgelib`: register the KnowledgeLib MCP server globally (see below)
 - `--with-rtk`: install the global rtk hook if the machine does not have it (`rtk init -g --auto-patch`)
 - `--full`: all of the above (wiki, skills, knowledgelib, rtk)
@@ -45,7 +45,7 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 - `caveman*` is a personal preference: installed, but the harness does not switch the mode on (`CLAUDE.md.template` does not force it).
 - `orca-cli` ships with the Orca app; `failure-flywheel` is not bundled because it writes into `llmwiki/wiki/` (rules removed).
 - An existing copy under `~/.agents/skills` is **never overwritten**, only reported as different.
-- Maintenance: after editing files in `skills/`, regenerate checksums with `cd skills && find . -type f ! -name SHA256SUMS | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
+- Maintenance: after editing files in `skills/`, regenerate checksums with `cd skills && find . -type f ! -name SHA256SUMS ! -path '*/__pycache__/*' ! -name .DS_Store | sort | sed 's#^\./##' | xargs shasum -a 256 > SHA256SUMS`.
 
 ## rtk (optional)
 
