@@ -7,16 +7,16 @@ mỗi vendor được ghi WIRING native, KHÔNG vendor nào cần MCP.
 
 Phân tầng:
   deny-được, dùng native + CLI : claude (hook→CLI) · opencode (permission.edit:deny) · antigravity (Deny-rule)
-  chỉ-nhắc (advisory text)      : cursor · codex · kiro
+  deny-được, dùng PreToolUse   : codex (R20 · R22)
+  chỉ-nhắc (advisory text)      : cursor · kiro
   phủ MỌI vendor (sàn đảm bảo)  : pre-commit + CI (gọi CLI files mode)
 """
+import json
 import os
+import stat
 import sys
-
-try:
-    import yaml
-except ImportError:
-    sys.exit("gen-converters: cần pyyaml (pip install pyyaml)")
+import tempfile
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 POLICY = os.path.join(HERE, "policy.yaml")
@@ -34,11 +34,91 @@ def write(rel, content):
     print(f"  ✎ out/{rel}")
 
 
+CODEX_SCRIPT = "harness/poc-vendor-neutral/bin/codex-hook.py"
+CODEX_STATUS = "my-agent-harness PreToolUse"
+
+
+def codex_hooks():
+    missing = json.dumps({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": f"my-agent-harness: thiếu {CODEX_SCRIPT}",
+    }}, ensure_ascii=False)
+    command = (
+        'R=$(git rev-parse --show-toplevel 2>/dev/null) || R="$PWD"; '
+        f'G="$R/{CODEX_SCRIPT}"; '
+        f"""if [ -f "$G" ]; then exec python3 "$G"; else printf '%s' '{missing}'; fi"""
+    )
+    return [{"hooks": [{
+        "type": "command", "command": command, "timeout": 15, "statusMessage": CODEX_STATUS,
+    }]}]
+
+
+def update_codex_hooks(path, snippet=None):
+    """Replace only our PreToolUse command, even in a group shared with other hooks."""
+    try:
+        original = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        if snippet is None:
+            return
+        original = {}
+    updated = dict(original)
+    events = dict(updated.get("hooks", {}))
+    previous_groups = events.get("PreToolUse", [])
+    groups = []
+    for group in previous_groups:
+        hooks = [
+            hook for hook in group["hooks"]
+            if not (hook.get("statusMessage") == CODEX_STATUS
+                    and CODEX_SCRIPT in hook.get("command", ""))
+        ]
+        if hooks or not group["hooks"]:
+            groups.append({**group, "hooks": hooks})
+    if snippet is None and groups == previous_groups:
+        return
+    if snippet is not None:
+        groups.extend(json.loads(snippet.read_text(encoding="utf-8"))["hooks"]["PreToolUse"])
+    if groups:
+        events["PreToolUse"] = groups
+    else:
+        events.pop("PreToolUse", None)
+    if events:
+        updated["hooks"] = events
+    else:
+        updated.pop("hooks", None)
+    if updated == original:
+        return
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as temp:
+        temp_path = Path(temp.name)
+        try:
+            if path.exists():
+                temp_path.chmod(stat.S_IMODE(path.stat().st_mode))
+            json.dump(updated, temp, ensure_ascii=False, indent=2)
+            temp.write("\n")
+            temp.close()
+            temp_path.replace(path)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink()
+
+
 def main():
+    if sys.argv[1:2] == ["--merge-codex-hooks"]:
+        update_codex_hooks(Path(sys.argv[2]), Path(sys.argv[3]))
+        return
+    if sys.argv[1:2] == ["--remove-codex-hooks"]:
+        update_codex_hooks(Path(sys.argv[2]))
+        return
     # --plan: xem trước hệ quả (luật/engine/out/ + dự án đã cài), KHÔNG ghi out/. Tham số còn lại chuyển nguyên.
     if len(sys.argv) > 1 and sys.argv[1] == "--plan":
         plan = os.path.join(HERE, "bin", "harness-plan.py")
         os.execv(sys.executable, [sys.executable, plan] + sys.argv[2:])
+    try:
+        import yaml
+    except ImportError:
+        sys.exit("gen-converters: cần pyyaml (pip install pyyaml)")
     with open(POLICY, encoding="utf-8") as f:
         policy = yaml.safe_load(f)
     rules = policy.get("rules", {})
@@ -49,7 +129,6 @@ def main():
     print("gen-converters: sinh wiring từ policy.yaml →")
 
     # ---- 1. Claude — PreToolUse (lõi chặn) + hook sự kiện R4/R8/R19/R21/R22 ----
-    import json
     EVT = "harness/poc-vendor-neutral/bin/harness-events.py"
     def _ev(c, t=15): return [{"type": "command", "command": c, "timeout": t}]
     # CHẶN-ĐƯỢC (PreToolUse/Stop): exec giữ exit 2 khi script chặn; file THIẾU → exit 0 (fail-open, không khoá cứng)
@@ -115,7 +194,9 @@ export const HarnessPlugin = async ({{ $ }}) => ({{
         ag.append(f"  - write_file({g})")
     write("antigravity/permissions.snippet.txt", "\n".join(ag) + "\n")
 
-    # ---- 4. advisory (chỉ-nhắc): cursor / codex / kiro ----
+    # ---- 4. Codex PreToolUse + advisory snippets ----
+    write("codex/hooks.json", json.dumps({"hooks": {"PreToolUse": codex_hooks()}},
+                                         ensure_ascii=False, indent=2) + "\n")
     body = "\n".join(statements)
     cursor = f"""---
 description: llmwiki harness rules (advisory — KHÔNG enforce; sàn đảm bảo là CI)
@@ -131,7 +212,7 @@ alwaysApply: true
     write("cursor/.cursor/rules/harness.mdc", cursor)
     write("codex/AGENTS.snippet.md",
           f"<!-- {GEN} -->\n\n## Harness rules (advisory)\n{body}\n\n"
-          f"> Codex: AGENTS.md hay drift giữa phiên → đây chỉ là NHẮC. Đảm bảo thật ở CI.\n")
+          f"> Codex: duyệt hook qua /hooks để bật R20 và R22 trong phiên.\n")
     write("kiro/.kiro/steering/harness.md",
           f"<!-- {GEN} -->\n---\ninclusion: always\n---\n\n# Harness rules (advisory)\n{body}\n\n"
           f"> Kiro steering hay bị bỏ qua → NHẮC thôi. Đảm bảo thật ở CI.\n")

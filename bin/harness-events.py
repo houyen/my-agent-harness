@@ -205,11 +205,17 @@ def _is_system_browser_cmd(cmd):
     bỏ wrapper/env-assign), KHÔNG soi chuỗi nằm trong tham số → không chặn nhầm commit message."""
     import re
     import shlex
-    for seg in re.split(r"\s*(?:&&|\|\||;|\||\n)\s*", cmd):
-        try:
-            t = shlex.split(seg)
-        except ValueError:
-            t = seg.split()
+    def segments():
+        if isinstance(cmd, list):
+            yield shlex.join(cmd), cmd
+            return
+        for seg in re.split(r"\s*(?:&&|\|\||;|\||\n)\s*", cmd):
+            try:
+                yield seg, shlex.split(seg)
+            except ValueError:
+                yield seg, seg.split()
+
+    for seg, t in segments():
         while t and (t[0] in _WRAPPERS or ("=" in t[0] and not t[0].startswith("-"))):
             t = t[1:]
         if not t:

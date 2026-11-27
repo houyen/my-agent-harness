@@ -54,7 +54,7 @@ mkdir -p "$DEST/bin"
 if [ "$(cd "$SRC" && pwd -P)" != "$(cd "$DEST" && pwd -P)" ]; then
   cp "$SRC/policy.yaml" "$SRC/gen-converters.py" "$SRC/demo.sh" "$SRC/test-broad.sh" "$DEST/"
   cp "$SRC/bin/"*.py "$DEST/bin/"
-  for f in install.sh uninstall.sh bootstrap.sh test-rules.sh test-propose.sh test-plan.sh README.md DOCS.md; do [ -f "$SRC/$f" ] && cp "$SRC/$f" "$DEST/"; done
+  for f in install.sh uninstall.sh bootstrap.sh test-rules.sh test-propose.sh test-plan.sh test-codex.sh README.md DOCS.md; do [ -f "$SRC/$f" ] && cp "$SRC/$f" "$DEST/"; done
   [ -d "$SRC/skills" ] && { rm -rf "$DEST/skills"; cp -R "$SRC/skills" "$DEST/skills"; }
 else
   log "  · lõi đã ở đúng chỗ (SRC=DEST), bỏ qua copy"
@@ -208,7 +208,11 @@ fi
 # advisory (nhắc — dựa CI là chính)
 if has cursor; then mkdir -p "$ROOT/.cursor/rules"; cp "$OUT/cursor/.cursor/rules/harness.mdc" "$ROOT/.cursor/rules/"; log "  ✓ Cursor   → .cursor/rules/harness.mdc (advisory)"; fi
 if has kiro;   then mkdir -p "$ROOT/.kiro/steering"; cp "$OUT/kiro/.kiro/steering/harness.md" "$ROOT/.kiro/steering/"; log "  ✓ Kiro     → .kiro/steering/harness.md (advisory)"; fi
-if has codex;  then warn "  Codex → thêm nội dung out/codex/AGENTS.snippet.md vào AGENTS.md (advisory)"; fi
+if has codex; then
+  python3 "$DEST/gen-converters.py" --merge-codex-hooks "$ROOT/.codex/hooks.json" "$OUT/codex/hooks.json"
+  log "  ✓ Codex    → .codex/hooks.json (R20, R22)"
+  warn "  Codex: duyệt (trust) hook qua /hooks trước khi hook chạy."
+fi
 
 # ── B4. Verify ──
 if [ "$VERIFY" = 1 ]; then

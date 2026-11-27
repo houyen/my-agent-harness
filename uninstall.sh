@@ -78,7 +78,12 @@ if removed:
 PY
 fi
 
-# 5. advisory
+# 5. Codex: gỡ riêng hook PreToolUse của harness.
+if [ -f "$ROOT/.codex/hooks.json" ]; then
+  python3 "$(dirname "${BASH_SOURCE[0]}")/gen-converters.py" --remove-codex-hooks "$ROOT/.codex/hooks.json"
+fi
+
+# advisory
 [ -f "$ROOT/.cursor/rules/harness.mdc" ] && { rm -f "$ROOT/.cursor/rules/harness.mdc"; log "✓ gỡ Cursor advisory"; }
 [ -f "$ROOT/.kiro/steering/harness.md" ] && { rm -f "$ROOT/.kiro/steering/harness.md"; log "✓ gỡ Kiro advisory"; }
 grep -ql 'llmwiki harness' "$ROOT/AGENTS.md" 2>/dev/null && warn "Codex: xoá khối 'Harness rules' trong AGENTS.md bằng tay (nếu đã thêm)"

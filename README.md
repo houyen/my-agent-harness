@@ -52,6 +52,14 @@ Cờ:
 - `install.sh` luôn báo trạng thái rtk. Thêm `--with-rtk` (hoặc `--full`) thì nếu máy chưa có hook sẽ chạy `rtk init -g --auto-patch`; đã có thì bỏ qua.
 - Không dùng `rtk init` không `-g`: nó chỉ nhét ~5KB chỉ dẫn vào CLAUDE.md dự án, trùng với template và `RTK.md` global.
 
+## Codex adapter
+
+Chạy `bash install.sh <project_root> --vendor codex` để gộp hook `PreToolUse` vào `.codex/hooks.json`. Trong Codex, mở `/hooks` và duyệt (trust) hook trước khi sử dụng.
+
+Hook áp R22 cho lệnh Bash và kiểm R20 trên nội dung Markdown sau `apply_patch` trong phạm vi policy. Payload lỗi hoặc thiếu policy sẽ cho qua và báo stderr. Wrapper trả quyết định deny nếu thiếu script adapter.
+
+`bash uninstall.sh <project_root>` gỡ hook của harness và giữ các hook Codex khác. Chạy `bash test-codex.sh` để kiểm adapter cục bộ.
+
 ## Thanh usage (statusline) Claude Code + Codex (tuỳ chọn)
 
 Một lõi chung `bin/usage/core.py`, hai vỏ mỏng, cùng khuôn hai dòng để hai agent đọc như nhau:
@@ -106,7 +114,7 @@ python3 bin/harness-replay.py --engine /tmp/cand/bin --project P --fail-on-new-b
 
 - **plan** không ghi `out/` thật: nó sinh wiring của cả mốc lẫn bản đang sửa trong thư mục tạm rồi diff. Mỗi thay đổi được chấm điểm: `high` = có chỗ chặn mới hoặc chặt hơn ở session, hoặc engine của luật đang chặn bị đổi; `medium` = CI có thể đỏ, đổi matcher, hoặc bỏ một lớp chặn; `low` = chỉ đổi lời văn hoặc nới lỏng. Với từng dự án, plan báo policy đang cài nằm ở commit nào, cài lại sẽ thêm hoặc bỏ luật gì, và bao nhiêu lệnh cũ sẽ bị chặn.
 - **replay** đọc `audit.jsonl` (lệnh đã cho qua) và `decisions.jsonl` (lệnh đã bị chặn), chạy lại bằng **cùng hàm thuần** mà hook dùng (`llmwiki-validate.evaluate`, `harness-events.REPLAYABLE`), rồi báo: vẫn qua · vẫn chặn · **MỚI BỊ CHẶN** · mới được qua · không đo được. Giới hạn (được in ra ở mỗi lần chạy): Write/Edit được đo trên nội dung *hiện tại* của file; lệnh Bash là bản đã che secret; audit trước 2026-11-04 không có Bash. Thêm một hook chặn mới thì khai hàm kiểm của nó vào `REPLAYABLE` trong `harness-events.py`, nếu không replay sẽ báo luật đó là "không replay được".
-- **decisions.jsonl**: mỗi lần chặn ghi rule, đoạn khớp, `input_sha`, `policy_sha` và `engine_sha`, đủ để kiểm lại vì sao bị chặn. Tắt bằng `HARNESS_NO_DECISIONS=1`. Tắt việc ghi lệnh Bash vào audit bằng `HARNESS_AUDIT_NO_BASH=1`. Phần che secret dựa theo mẫu (token có tiền tố, `Authorization`, `user:pass@`, biến `*_TOKEN=`/`*_KEY=`, `--password`, `mysql -p`, khối private key), nên **không bảo đảm** che hết.
+- **decisions.jsonl**: mỗi lần hook Claude chặn sẽ ghi rule, đoạn khớp, `input_sha`, `policy_sha` và `engine_sha`, đủ để kiểm lại vì sao bị chặn. Tắt bằng `HARNESS_NO_DECISIONS=1`. Tắt việc ghi lệnh Bash vào audit bằng `HARNESS_AUDIT_NO_BASH=1`. Phần che secret dựa theo mẫu (token có tiền tố, `Authorization`, `user:pass@`, biến `*_TOKEN=`/`*_KEY=`, `--password`, `mysql -p`, khối private key), nên **không bảo đảm** che hết.
 
 ## Browser policy (R22)
 

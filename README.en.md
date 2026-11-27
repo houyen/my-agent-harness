@@ -55,6 +55,14 @@ Install is idempotent. CI and pre-commit are always installed (the vendor-neutra
 - `install.sh` always reports rtk status. With `--with-rtk` (or `--full`) it runs `rtk init -g --auto-patch` when the machine has no hook, and does nothing if it is already there.
 - Avoid plain `rtk init` (no `-g`): it only injects ~5 KB of instructions into the project CLAUDE.md, duplicating the template and the global `RTK.md`.
 
+## Codex adapter
+
+Run `bash install.sh <project_root> --vendor codex` to merge the `PreToolUse` hook into `.codex/hooks.json`. Open `/hooks` in Codex and trust the hook before using it.
+
+The hook applies R22 to Bash commands and checks R20 against the Markdown content that `apply_patch` would produce for paths covered by the policy. Malformed input or a missing policy fails open with a diagnostic on stderr. The wrapper denies if the adapter script is missing.
+
+Run `bash uninstall.sh <project_root>` to remove the harness hook and preserve other Codex hooks. Run `bash test-codex.sh` to check the adapter locally.
+
 ## Usage statusline for Claude Code + Codex (optional)
 
 One shared core `bin/usage/core.py` and two thin shells render the same two-line footer in both agents:
@@ -101,7 +109,7 @@ python3 bin/harness-replay.py --engine /tmp/cand/bin --project P --fail-on-new-b
 
 - **plan** never writes the real `out/`. It generates the wiring for both the baseline and the working tree in a temp dir, then diffs them. It scores each change: `high` = a new or stricter block at session, or a changed engine behind a blocking rule; `medium` = CI may go red, a changed matcher, or a removed block; `low` = text-only changes or loosening. For each installed project it reports which commit the installed policy matches, which rules a reinstall adds or removes, and how many past calls would now be blocked.
 - **replay** reads `audit.jsonl` (calls that were allowed) and `decisions.jsonl` (calls that were blocked), re-evaluates them with the **same pure functions** the hooks use (`llmwiki-validate.evaluate`, `harness-events.REPLAYABLE`), and reports: still allowed · still blocked · **NEWLY BLOCKED** · newly allowed · not measurable. Limits, printed on every run: Write/Edit are measured on the file's *current* content; Bash commands are the redacted copies; audit logs before 2026-11-04 have no Bash commands. When you add a blocking hook, register its check in `REPLAYABLE` in `harness-events.py`, or replay will list the rule as not replayable.
-- **decisions.jsonl**: every block records the rule, the matched fragment, `input_sha`, `policy_sha` and `engine_sha`, which is enough to re-check why a call was blocked. Disable with `HARNESS_NO_DECISIONS=1`; stop recording Bash commands in the audit with `HARNESS_AUDIT_NO_BASH=1`. Redaction is pattern-based (prefixed tokens, `Authorization`, `user:pass@`, `*_TOKEN=`/`*_KEY=` variables, `--password`, `mysql -p`, private key blocks), so it is **not a guarantee**.
+- **decisions.jsonl**: every Claude hook block records the rule, the matched fragment, `input_sha`, `policy_sha` and `engine_sha`, which is enough to re-check why a call was blocked. Disable with `HARNESS_NO_DECISIONS=1`; stop recording Bash commands in the audit with `HARNESS_AUDIT_NO_BASH=1`. Redaction is pattern-based (prefixed tokens, `Authorization`, `user:pass@`, `*_TOKEN=`/`*_KEY=` variables, `--password`, `mysql -p`, private key blocks), so it is **not a guarantee**.
 
 ## Browser policy (R22)
 
