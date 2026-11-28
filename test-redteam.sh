@@ -38,5 +38,9 @@ scan --allow "pipe-to-shell:pipesh" "$TMP/pipesh" >/dev/null; ok "--allow bỏ p
 o="$(scan --json "$TMP/inject")"; ok "--json hợp lệ" 'python3 -c "import json,sys;json.loads(sys.argv[1])" "$o"'
 mkdir -p "$TMP/multi" && cp -R "$TMP/clean" "$TMP/multi/a" && cp -R "$TMP/inject" "$TMP/multi/b"
 o="$(scan "$TMP/multi")"; ok "quét thư mục nhiều skill" '[[ "$o" == *"b/SKILL.md"* ]] && [[ "$o" != *"a/SKILL.md"* ]]'
+printf 'injection-phrase inject/SKILL.md  # bài thử cố ý\n' > "$TMP/allow.txt"
+scan --allow-file "$TMP/allow.txt" "$TMP/inject" >/dev/null; ok "--allow-file ngoài thư mục: được bỏ qua" '[ $? -eq 0 ]'
+cp "$TMP/allow.txt" "$TMP/inject/.redteam-allow"; cp "$TMP/allow.txt" "$TMP/inject/redteam-allow.txt"
+scan "$TMP/inject" >/dev/null; ok "file ngoại lệ nằm trong chính skill: KHÔNG có hiệu lực" '[ $? -eq 1 ]'
 echo; echo "TỔNG: $((PASS+FAIL)) test · $PASS PASS · $FAIL FAIL"
 [ "$FAIL" -eq 0 ]

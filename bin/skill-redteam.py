@@ -3,6 +3,8 @@
 
   skill-redteam.py [--json] [--fail-on high|medium|info] [--allow RULE:chuỗi-đường-dẫn ...] DIR [DIR ...]
 
+Ngoại lệ có kiểm soát: --allow-file redteam-allow.txt (file nằm ngoài thư mục bị quét, review cùng commit).
+
 DIR là một skill (có SKILL.md) hoặc thư mục chứa nhiều skill. Mã thoát 1 nếu có phát hiện từ mức --fail-on
 (mặc định high). Đây là lưới lọc nông bằng mẫu: sạch KHÔNG chứng minh an toàn; vẫn phải đọc tay file có script.
 Chỉ dùng thư viện chuẩn.
@@ -123,8 +125,16 @@ def main(argv=None):
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--fail-on", choices=list(LEVELS), default="high")
     ap.add_argument("--allow", action="append", default=[], help="RULE:chuỗi-đường-dẫn, bỏ phát hiện khớp")
+    ap.add_argument("--allow-file", help="file ngoại lệ ngoài thư mục bị quét; mỗi dòng `rule chuỗi-đường-dẫn  # lý do`")
     args = ap.parse_args(argv)
     allow = [a.split(":", 1) for a in args.allow if ":" in a]
+    # Ngoại lệ chỉ đọc từ --allow-file do người chạy chỉ định (nằm NGOÀI thư mục bị quét). Không bao giờ dò file
+    # ngoại lệ bên trong skill: skill lạ không được tự khai ngoại lệ để giấu phát hiện của chính nó.
+    if args.allow_file:
+        for ln in Path(args.allow_file).read_text(encoding="utf-8").splitlines():
+            parts = ln.split("#", 1)[0].strip().split(None, 1)
+            if len(parts) == 2:
+                allow.append((parts[0], parts[1]))
     found, worst = [], -1
     for skill in targets(args.dirs):
         for f in scan_skill(skill):
