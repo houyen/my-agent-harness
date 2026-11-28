@@ -11,6 +11,7 @@
   "orca-issue": {"invoke": "/orca-issue", "why": "xử lý sự cố repro-first", "phrases": ["bị lỗi", "lỗi runtime", "regression", "sự cố", "không chạy được", "crash", "bug"]},
   "teach-me": {"invoke": "/teach-me", "why": "giải thích một thứ theo bảy bước", "phrases": ["giải thích", "teach me", "dạy tôi", "cho tôi hiểu", "explain"]},
   "ba-test-design": {"invoke": "/ba-test-design", "why": "thiết kế bộ test case tổ hợp (pairwise) từ yêu cầu", "phrases": ["test case", "thiết kế test", "pairwise", "tổ hợp test", "bảng test", "ma trận test"]},
+  "ba-requirements": {"invoke": "/ba-requirements", "why": "biến biên bản/ghi chú thành yêu cầu có mã (EARS, AC, truy vết)", "phrases": ["biên bản họp", "viết yêu cầu", "tài liệu yêu cầu", "ears", "tiêu chí chấp nhận", "acceptance criteria", "yêu cầu chức năng", "trích yêu cầu"]},
   "wayfinder": {"invoke": "/wayfinder", "why": "lập bản đồ quyết định cho việc quá lớn, còn mơ hồ", "phrases": ["việc quá lớn", "lập bản đồ", "nhiều phiên", "roadmap", "chưa biết bắt đầu từ đâu"]},
   "wait-what": {"invoke": "/wait-what", "why": "nói lại ngắn gọn, đúng thuật ngữ", "phrases": ["không hiểu", "chưa hiểu", "nói lại đi", "wait what", "giải thích lại"]},
   "orca-handover": {"invoke": "/orca-handover", "why": "viết file bàn giao cho phiên khác", "phrases": ["bàn giao", "handover", "phiên sau", "hết phiên", "ghi lại để mai"]},

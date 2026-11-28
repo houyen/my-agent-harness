@@ -13,7 +13,7 @@ Dùng khi một tính năng có nhiều tham số độc lập và test đầy �
 
 ## Quy trình
 
-1. **Lấy tham số từ yêu cầu.** Đọc spec, ticket hoặc đoạn code. Mỗi đầu vào, cấu hình hay điều kiện môi trường ảnh hưởng kết quả là một tham số.
+1. **Lấy tham số từ yêu cầu.** Đọc spec, ticket hoặc đoạn code. Nếu đã có `requirements.md` từ `/ba-requirements`, lấy tham số từ các `FR-n` và dùng chính mã đó làm cột truy vết. Mỗi đầu vào, cấu hình hay điều kiện môi trường ảnh hưởng kết quả là một tham số.
    Nếu yêu cầu chưa nói rõ một giá trị hay ngưỡng, **không đoán**: ghi vào danh sách "chưa rõ" và hỏi user (dùng `grilling`, hoặc `/to-questionnaire` nếu người trả lời là người khác).
 2. **Chọn giá trị** cho từng tham số bằng phân hoạch tương đương và giá trị biên. Mỗi lớp tương đương một giá trị đại diện; thêm giá trị biên cho tham số số học.
 3. **Khai ràng buộc.** Mỗi quy tắc nghiệp vụ cấm một tổ hợp là một mục `forbidden`. Ghi lý do ngay cạnh.

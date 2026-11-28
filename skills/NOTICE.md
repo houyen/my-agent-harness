@@ -52,6 +52,8 @@ The remaining skills are vendored from their ORIGINAL upstream (not via the repo
 
 - `ba-test-design` (self-authored, 2026-11-28): the workflow is based on ideas from <https://github.com/omkamal/pypict-claude-skill> (MIT, Copyright (c) 2025 pypict-claude-skill contributors). No code or text copied; `scripts/pairwise.py` is original.
 
+- `ba-requirements` (self-authored, 2026-11-28): requirements workflow distilled from <https://github.com/Rune-kit/rune> `skills/ba` (MIT, Copyright (c) 2026 Rune Contributors) and the public EARS technique (Mavin et al.). No text or code copied; the Rune-specific orchestration was dropped.
+
 Each section below reproduces the license that applies to its component.
 
 ---
