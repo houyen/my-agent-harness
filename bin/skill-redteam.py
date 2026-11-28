@@ -17,7 +17,7 @@ import unicodedata
 from pathlib import Path
 
 LEVELS = {"info": 0, "medium": 1, "high": 2}
-TEXT_EXT = {".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".py", ".sh", ".js", ".cjs", ".mjs", ".ts", ".html", ".css", ".cmd", ""}
+TEXT_EXT = {".md", ".txt", ".xml", ".csv", ".json", ".yaml", ".yml", ".toml", ".py", ".sh", ".js", ".cjs", ".mjs", ".ts", ".html", ".css", ".cmd", ""}
 BINARY_EXT = {".zip", ".gz", ".tgz", ".tar", ".whl", ".exe", ".dll", ".so", ".dylib", ".pyc", ".jar", ".bin", ".7z", ".dmg"}
 MAX_TEXT = 512 * 1024
 
@@ -60,6 +60,8 @@ def line_of(text, idx):
 def scan_text(path, rel, text, out):
     for i, ch in enumerate(text):
         cat = unicodedata.category(ch)
+        if i == 0 and ch == "\ufeff":
+            continue  # BOM đầu file là bình thường; U+FEFF ở giữa file vẫn bị bắt
         if cat in ("Cf", "Co") or (cat == "Cc" and ch not in "\n\r\t"):
             add(out, "high", "invisible-char", rel, line_of(text, i), f"U+{ord(ch):04X} ({unicodedata.name(ch, 'unnamed')})")
             break

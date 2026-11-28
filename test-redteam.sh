@@ -42,5 +42,10 @@ printf 'injection-phrase inject/SKILL.md  # bài thử cố ý\n' > "$TMP/allow.
 scan --allow-file "$TMP/allow.txt" "$TMP/inject" >/dev/null; ok "--allow-file ngoài thư mục: được bỏ qua" '[ $? -eq 0 ]'
 cp "$TMP/allow.txt" "$TMP/inject/.redteam-allow"; cp "$TMP/allow.txt" "$TMP/inject/redteam-allow.txt"
 scan "$TMP/inject" >/dev/null; ok "file ngoại lệ nằm trong chính skill: KHÔNG có hiệu lực" '[ $? -eq 1 ]'
+mk bomstart "Văn bản có BOM đầu file"; python3 - "$TMP/bomstart/SKILL.md" <<'PY'
+import sys; p=sys.argv[1]; t=open(p,encoding="utf-8").read(); open(p,"w",encoding="utf-8").write("\ufeff"+t)
+PY
+scan "$TMP/bomstart" >/dev/null; ok "BOM đầu file không bị coi là ký tự ẩn" '[ $? -eq 0 ]'
+mk bommid "$(printf 'a\xef\xbb\xbfb')"; o="$(scan "$TMP/bommid")"; ok "U+FEFF giữa file vẫn bị bắt" '[[ "$o" == *"invisible-char"* ]]'
 echo; echo "TỔNG: $((PASS+FAIL)) test · $PASS PASS · $FAIL FAIL"
 [ "$FAIL" -eq 0 ]

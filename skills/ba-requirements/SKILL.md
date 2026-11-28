@@ -13,10 +13,11 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
 
 ## Quy trình
 
-1. **Ghi nguồn.** Gán mã cho từng nguồn: `S1`, `S2`... kèm ai nói, ngày, loại (họp, email, spec). Giữ nguyên câu gốc để trích dẫn.
+1. **Ghi nguồn.** Gán mã cho từng nguồn: `S1`, `S2`... kèm ai nói, ngày, loại (họp, email, spec). Giữ nguyên câu gốc để trích dẫn. Tài liệu đã đánh số mục (SRS) thì dùng số mục làm mã: `S1§3.2.1.5`.
 2. **Phân loại phát biểu.** Mỗi ý trong nguồn là một trong: mục tiêu, quy tắc nghiệp vụ, ràng buộc, yêu cầu chức năng, yêu cầu phi chức năng, giả định, quyết định đã chốt, câu hỏi mở. Mỗi ý giữ mã nguồn của nó.
-3. **Tự trả lời trước khi hỏi.** Câu nào đọc được từ nguồn, README, tài liệu hay code thì **không hỏi user**. Câu nào không có trong tài liệu mới đưa vào danh sách hỏi.
-4. **Chấm độ mơ hồ** theo ba chiều, mỗi chiều 0.0 đến 1.0:
+3. **Soát lỗi ngay trong nguồn.** Tìm số liệu lệch giữa các mục (1.000 và 10.000), điều kiện không thể xảy ra, trạng thái có nhiều tên hoặc không được định nghĩa, nhánh bị bỏ sót (bảng chưa đầy thì sao), quy tắc xếp hạng bỏ qua một tiêu chí đã nêu ở chỗ khác, mục "hiệu năng" không có con số. Mỗi lỗi ghi kèm số mục. Không tự sửa: chuyển thành câu hỏi mở.
+4. **Tự trả lời trước khi hỏi.** Câu nào đọc được từ nguồn, README, tài liệu hay code thì **không hỏi user**. Câu nào không có trong tài liệu mới đưa vào danh sách hỏi.
+5. **Chấm độ mơ hồ** theo ba chiều, mỗi chiều 0.0 đến 1.0:
 
    | Chiều | 0.0 | 0.5 | 1.0 |
    |---|---|---|---|
@@ -25,7 +26,7 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
    | Tiêu chí thành công | "chạy được" | "người dùng thấy dữ liệu" | "có AC kiểm được bằng GIVEN/WHEN/THEN" |
 
    Độ mơ hồ = 1 trừ trung bình ba chiều. **Từ 30% trở lên thì dừng và hỏi**, bằng `/grill-me` (hỏi user) hoặc `/to-questionnaire` (hỏi người khác). Từ 15% đến dưới 30%: đi tiếp, mọi chỗ hở ghi thành câu hỏi mở. Dưới 15%: đi tiếp. Con số chỉ để định hướng, không phải đo chính xác.
-5. **Viết yêu cầu chức năng theo EARS.** Mỗi yêu cầu có mã `FR-n`, đúng một "phải" (shall), chủ thể là một thành phần cụ thể, không dùng "nó". Chọn mẫu đơn giản nhất còn đủ:
+6. **Viết yêu cầu chức năng theo EARS.** Mỗi yêu cầu có mã `FR-n`, đúng một "phải" (shall), chủ thể là một thành phần cụ thể, không dùng "nó". Chọn mẫu đơn giản nhất còn đủ:
 
    | Mẫu | Dạng |
    |---|---|
@@ -37,10 +38,10 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
    | Kết hợp | Khi đang ở `<trạng thái>` và xảy ra `<sự kiện>`, `<X>` phải `<phản hồi>`. |
 
    Phản hồi phải kiểm được ("trả mã 401"), không dùng "xử lý êm", "nhanh". Không nhét cách cài đặt vào yêu cầu (không nêu Redis, tên bảng). Yêu cầu nào toàn là mẫu "luôn đúng" thường là đã bỏ sót sự kiện kích hoạt.
-6. **Tiêu chí chấp nhận.** Mỗi `FR-n` có ít nhất một `AC-n.m` dạng GIVEN/WHEN/THEN, nêu dữ liệu cụ thể.
-7. **Yêu cầu phi chức năng** (`NFR-n`): hiệu năng, bảo mật, khả dụng, tuân thủ. Mỗi cái có con số và cách đo.
-8. **Phạm vi:** tách "trong phạm vi" và "ngoài phạm vi", mỗi mục ngoài phạm vi kèm lý do.
-9. **Kiểm nhất quán trước khi bàn giao**, mỗi dòng đánh 🟢 / 🟡 / 🔴:
+7. **Tiêu chí chấp nhận.** Mỗi `FR-n` có ít nhất một `AC-n.m` dạng GIVEN/WHEN/THEN, nêu dữ liệu cụ thể.
+8. **Yêu cầu phi chức năng** (`NFR-n`): hiệu năng, bảo mật, khả dụng, tuân thủ. Mỗi cái có con số và cách đo.
+9. **Phạm vi:** tách "trong phạm vi" và "ngoài phạm vi", mỗi mục ngoài phạm vi kèm lý do.
+10. **Kiểm nhất quán trước khi bàn giao**, mỗi dòng đánh 🟢 / 🟡 / 🔴:
    - mỗi AC dẫn về một FR
    - mỗi FR dẫn về một nguồn (hoặc ghi "suy luận, cần xác nhận")
    - phạm vi trong và ngoài không giẫm lên nhau
@@ -48,7 +49,7 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
    - mỗi NFR có con số
    - mỗi câu hỏi mở có chủ và hạn
    Còn 🔴 thì **không bàn giao**; nói rõ chỗ nào và hỏi.
-10. **Xuất file** theo mẫu dưới. Xong khi bước 9 không còn 🔴 và mỗi FR có AC.
+11. **Xuất file** theo mẫu dưới. Xong khi bước 10 không còn 🔴 và mỗi FR có AC.
 
 ## Quy tắc
 
@@ -59,7 +60,7 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
 - **Không viết HOW.** Chuyển cách làm sang `/plan` hoặc `tdd`.
 - Dữ liệu nhạy cảm trong biên bản (tên, số điện thoại, tài khoản): thay bằng vai trò hoặc mã trước khi ghi ra file.
 
-Ví dụ chạy trọn một biên bản (hư cấu) từ đầu đến bàn giao: [example.md](example.md). Bài thử với đầu vào xấu (mâu thuẫn, từ mơ hồ, dữ liệu cá nhân, câu tiêm lệnh) và thang chấm: [example-messy.md](example-messy.md).
+Ví dụ chạy trọn một biên bản (hư cấu) từ đầu đến bàn giao: [example.md](example.md). Bài thử với đầu vào xấu (mâu thuẫn, từ mơ hồ, dữ liệu cá nhân, câu tiêm lệnh) và thang chấm: [example-messy.md](example-messy.md). Bài thử trên một SRS thật có lỗi tự nhiên (bộ PURE, 12 lỗi cần phát hiện): [example-srs.md](example-srs.md).
 
 ## Mẫu `requirements.md`
 
