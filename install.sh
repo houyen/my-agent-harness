@@ -12,6 +12,7 @@
 #   --with-knowledgelib  đăng ký MCP KnowledgeLib GLOBAL (~/.claude.json) — 1 kho dùng chung mọi repo.
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
+#   --no-hooks         không cắm hook phiên (Claude settings, Codex hooks); R20/R22 không chặn lúc agent chạy, CI và pre-commit vẫn gác
 #   --full             bật --with-wiki --with-skills --with-rtk (KnowledgeLib tuỳ chọn, thêm --with-knowledgelib nếu cần)
 #   --profile NAME     cài hồ sơ ~/.claude từ profiles/NAME (skill, settings, CLAUDE.md) rồi THOÁT, không cài vào dự án.
 #                      Kèm được: --private DIR (repo riêng có skills/), --dry-run, --with-moli, --force-docs.
@@ -22,7 +23,7 @@
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # nguồn = poc-vendor-neutral/
-ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; WITH_STATUSLINE=0; GH_HOME=""; PROFILE=""; PROFILE_ARGS=()
+ROOT="."; VENDORS=""; VERIFY=1; CLEAN=0; WITH_SKILLS=0; WITH_WIKI=0; WITH_KNOWLEDGELIB=0; WITH_RTK=0; WITH_STATUSLINE=0; NO_HOOKS=0; GH_HOME=""; PROFILE=""; PROFILE_ARGS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --vendor) VENDORS="${2:-}"; shift 2;;
@@ -33,6 +34,7 @@ while [ $# -gt 0 ]; do
     --with-knowledgelib) WITH_KNOWLEDGELIB=1; shift;;
     --with-rtk) WITH_RTK=1; shift;;
     --with-statusline) WITH_STATUSLINE=1; shift;;
+    --no-hooks) NO_HOOKS=1; shift;;   # không cắm hook phiên (Claude/Codex): chỉ giữ CI + pre-commit + skills
     --profile) PROFILE="${2:-}"; shift 2;;
     --private) PROFILE_ARGS+=(--private "${2:-}"); shift 2;;
     --dry-run|--with-moli|--force-docs|--keep-legacy-hooks) PROFILE_ARGS+=("$1"); shift;;
@@ -120,7 +122,9 @@ else
   warn "  pre-commit đã tồn tại → thêm tay khối repo:local id=llmwiki-harness (xem out/pre-commit-snippet.yaml)"
 fi
 # Claude (merge hooks vào settings.json)
-if has claude; then
+if [ "$NO_HOOKS" = 1 ]; then
+  log "  · --no-hooks → bỏ cắm hook Claude/Codex (CI và pre-commit vẫn cài)"
+elif has claude; then
   python3 - "$ROOT" "$OUT/claude/settings.snippet.json" <<'PY'
 import json,os,sys,shutil
 root,snip=sys.argv[1],sys.argv[2]
@@ -216,7 +220,7 @@ fi
 # advisory (nhắc — dựa CI là chính)
 if has cursor; then mkdir -p "$ROOT/.cursor/rules"; cp "$OUT/cursor/.cursor/rules/harness.mdc" "$ROOT/.cursor/rules/"; log "  ✓ Cursor   → .cursor/rules/harness.mdc (advisory)"; fi
 if has kiro;   then mkdir -p "$ROOT/.kiro/steering"; cp "$OUT/kiro/.kiro/steering/harness.md" "$ROOT/.kiro/steering/"; log "  ✓ Kiro     → .kiro/steering/harness.md (advisory)"; fi
-if has codex; then
+if has codex && [ "$NO_HOOKS" = 0 ]; then
   python3 "$DEST/gen-converters.py" --merge-codex-hooks "$ROOT/.codex/hooks.json" "$OUT/codex/hooks.json"
   log "  ✓ Codex    → .codex/hooks.json (R20, R22)"
   warn "  Codex: duyệt (trust) hook qua /hooks trước khi hook chạy."
