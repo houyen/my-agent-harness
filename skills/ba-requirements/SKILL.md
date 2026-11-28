@@ -24,7 +24,7 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
    | Ràng buộc | chưa nhắc | "dùng DB hiện có" | "PostgreSQL 15, không thêm thư viện, tuân thủ GDPR" |
    | Tiêu chí thành công | "chạy được" | "người dùng thấy dữ liệu" | "có AC kiểm được bằng GIVEN/WHEN/THEN" |
 
-   Độ mơ hồ = 1 trừ trung bình ba chiều. **Từ 30% trở lên thì dừng và hỏi**, bằng `/grill-me` (hỏi user) hoặc `/to-questionnaire` (hỏi người khác). Dưới 15% thì đi tiếp. Con số chỉ để định hướng, không phải đo chính xác.
+   Độ mơ hồ = 1 trừ trung bình ba chiều. **Từ 30% trở lên thì dừng và hỏi**, bằng `/grill-me` (hỏi user) hoặc `/to-questionnaire` (hỏi người khác). Từ 15% đến dưới 30%: đi tiếp, mọi chỗ hở ghi thành câu hỏi mở. Dưới 15%: đi tiếp. Con số chỉ để định hướng, không phải đo chính xác.
 5. **Viết yêu cầu chức năng theo EARS.** Mỗi yêu cầu có mã `FR-n`, đúng một "phải" (shall), chủ thể là một thành phần cụ thể, không dùng "nó". Chọn mẫu đơn giản nhất còn đủ:
 
    | Mẫu | Dạng |
@@ -57,6 +57,8 @@ Làm rõ **cái gì** cần xây, không phải **xây thế nào**. Không vi�
 - **Không viết HOW.** Chuyển cách làm sang `/plan` hoặc `tdd`.
 - Dữ liệu nhạy cảm trong biên bản (tên, số điện thoại, tài khoản): thay bằng vai trò hoặc mã trước khi ghi ra file.
 
+Ví dụ chạy trọn một biên bản (hư cấu) từ đầu đến bàn giao: [example.md](example.md).
+
 ## Mẫu `requirements.md`
 
 ```markdown
@@ -87,4 +89,4 @@ Trong: ... | Ngoài: ... (lý do)
 
 ## Bước kế
 
-Có `requirements.md` sạch → `/ba-test-design` (từ FR và tham số sinh bộ test), `/to-spec` (đưa lên tracker hoặc file spec), rồi `/to-tickets`. Còn mơ hồ → `/grill-me` hoặc `/to-questionnaire`.
+Có `requirements.md` sạch → `/ba-test-design` (từ FR và tham số sinh bộ test), `/po-prioritize` (xếp thứ tự các FR), `/to-spec` (đưa lên tracker hoặc file spec), rồi `/to-tickets`. Còn mơ hồ → `/grill-me` hoặc `/to-questionnaire`.

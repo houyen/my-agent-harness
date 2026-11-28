@@ -33,6 +33,7 @@ Chỉ ra skill kế tiếp cho tình huống hiện tại. Không chạy skill �
 | Sắp sửa code dùng chung | `impact-check`, rồi `safe-change` |
 | Có lỗi hoặc sự cố | `/orca-issue` |
 | Có biên bản họp hay ghi chú thô, cần thành yêu cầu có mã | `/ba-requirements` |
+| Có danh sách việc, cần xếp thứ tự ưu tiên | `/po-prioritize` |
 | Cần bộ test case từ yêu cầu (nhiều tham số) | `/ba-test-design` |
 | Code xong | `/qc-code`, rồi `/verify-before-commit` |
 | Không hiểu tin nhắn vừa rồi | `/wait-what` |

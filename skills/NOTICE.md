@@ -54,6 +54,8 @@ The remaining skills are vendored from their ORIGINAL upstream (not via the repo
 
 - `ba-requirements` (self-authored, 2026-11-28): requirements workflow distilled from <https://github.com/Rune-kit/rune> `skills/ba` (MIT, Copyright (c) 2026 Rune Contributors) and the public EARS technique (Mavin et al.). No text or code copied; the Rune-specific orchestration was dropped.
 
+- `po-prioritize` (self-authored, 2026-11-28): RICE, WSJF and MoSCoW are public methods; no third-party text or code. `scripts/score.py` is original.
+
 Each section below reproduces the license that applies to its component.
 
 ---
