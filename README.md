@@ -35,7 +35,7 @@ One harness, four layers. Each layer works without the ones below it.
 | Layer | What | Where | Needs |
 |---|---|---|---|
 | 1. Policy | One `policy.yaml` generates the wiring (hooks, CI, pre-commit) and the rules R4, R8, R20, R22 that actually guard | `policy.yaml`, `gen-converters.py`, `out/` | nothing else |
-| 2. Skills | 45 skills, offline install, checksummed, provenance in `skills/NOTICE.md` | `skills/` | layer 1 is not required |
+| 2. Skills | 46 skills, offline install, checksummed, provenance in `skills/NOTICE.md` | `skills/` | layer 1 is not required |
 | 3. Machine profile | `~/.claude` settings, skill symlinks, tool list; checked by `profile.py` and `harness-doctor.py` | `profiles/personal/` | layers 1 and 2 |
 | 4. Optional add-ons | KnowledgeLib (R19-R21), usage statusline, a private repo for project memory | `--with-knowledgelib`, `--with-statusline`, `--private` | nothing is forced |
 
@@ -43,7 +43,7 @@ How other open-source harnesses (superpowers, ECC, addyosmani/agent-skills, Trel
 
 ## Bundled skills (`skills/`)
 
-45 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
+46 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
 
 | Skill | Purpose | Source (copyright kept) |
 |---|---|---|

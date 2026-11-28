@@ -50,6 +50,8 @@ The remaining skills are vendored from their ORIGINAL upstream (not via the repo
 
 - Modified 2026-11-27 (all vendored sections above): `description` rewritten with Vietnamese trigger phrases for `impact-check`, `safe-change`, `tdd`, `grilling`, `domain-modeling`, `research`, `writing-for-agents`, `grill-me`, `grill-with-docs`, `to-questionnaire`, `to-spec`, `to-tickets`, `wait-what`; a closing `## Bước kế` section (next-skill pointer) added to `grilling`, `to-questionnaire`, `domain-modeling`, `to-spec`, `to-tickets`, `research`, `propose`, `plan`, `qc-code`, `orca-issue`, `wayfinder`, `tdd`, `impact-check`, `safe-change`. Skill bodies are otherwise unchanged.
 
+- `ba-test-design` (self-authored, 2026-11-28): the workflow is based on ideas from <https://github.com/omkamal/pypict-claude-skill> (MIT, Copyright (c) 2025 pypict-claude-skill contributors). No code or text copied; `scripts/pairwise.py` is original.
+
 Each section below reproduces the license that applies to its component.
 
 ---
