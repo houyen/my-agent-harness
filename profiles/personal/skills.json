@@ -1,28 +1,29 @@
 {
-  "_comment": "public = mọi thư mục trong skills/ của repo này. private = skill chưa rõ giấy phép, nằm ở repo riêng (--private DIR, thư mục skills/). external = do công cụ khác cài, chỉ kiểm có mặt.",
+  "_comment": "public = mọi thư mục trong skills/ của repo này (gồm cả 13 skill giao diện viết lại 2026-11-28). private = skill chưa rõ giấy phép, để ở repo riêng (--private DIR); hiện để trống. external = do công cụ khác cài, chỉ kiểm có mặt.",
   "public": "all",
-  "private": [
-    "blur",
-    "css-scroll-driven-native",
-    "dark-mode-maker",
-    "design-taste-frontend",
-    "gsap-scrolltrigger-pin",
-    "infinite-webgl-grid",
-    "lenis-smooth-scroll",
-    "mask-reveal-transition",
-    "redesign-existing-projects",
-    "svg-stroke-reveal",
-    "threejs-particle-morph",
-    "timeline",
-    "tour-guide"
-  ],
+  "private": [],
   "external": {
     "orca-cli": "ứng dụng Orca",
     "orca-computer-use": "ứng dụng Orca",
     "knowledgelib": "bash install.sh --with-knowledgelib"
   },
   "tools": {
-    "required": ["git", "gh", "python3", "node", "pnpm", "rtk", "claude", "orca"],
-    "optional": ["moli", "opencode", "codex", "uv", "gitleaks"]
+    "required": [
+      "git",
+      "gh",
+      "python3",
+      "node",
+      "pnpm",
+      "rtk",
+      "claude",
+      "orca"
+    ],
+    "optional": [
+      "moli",
+      "opencode",
+      "codex",
+      "uv",
+      "gitleaks"
+    ]
   }
 }

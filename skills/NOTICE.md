@@ -389,3 +389,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Original skills (added 2026-11-28)
+
+These 13 skills are original text written for this repository and released under this repository's MIT License.
+They replace earlier private versions of the same names whose embedded code had unclear licenses; no text or
+code was copied from those versions or from third-party sources:
+`blur`, `css-scroll-driven-native`, `dark-mode-maker`, `design-taste-frontend`, `gsap-scrolltrigger-pin`,
+`infinite-webgl-grid`, `lenis-smooth-scroll`, `mask-reveal-transition`, `redesign-existing-projects`,
+`svg-stroke-reveal`, `threejs-particle-morph`, `timeline`, `tour-guide`.
+`next` (added 2026-11-27) is also original to this repository.
+They name public libraries (Three.js, GSAP, Lenis) and web platform APIs only as things to use; those libraries are not vendored.
