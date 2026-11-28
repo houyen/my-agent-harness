@@ -12,7 +12,7 @@
 #   --with-knowledgelib  đăng ký MCP KnowledgeLib GLOBAL (~/.claude.json) — 1 kho dùng chung mọi repo.
 #                        Path lấy từ env KNOWLEDGELIB_HOME (default ~/Documents/Repo/knowledgelib_data).
 #   --with-rtk         bật hook rtk GLOBAL nếu chưa có (rtk init -g --auto-patch; hook là của máy, không per-repo)
-#   --full             bật tất cả (--with-wiki --with-skills --with-knowledgelib --with-rtk)
+#   --full             bật --with-wiki --with-skills --with-rtk (KnowledgeLib tuỳ chọn, thêm --with-knowledgelib nếu cần)
 #   --profile NAME     cài hồ sơ ~/.claude từ profiles/NAME (skill, settings, CLAUDE.md) rồi THOÁT, không cài vào dự án.
 #                      Kèm được: --private DIR (repo riêng có skills/), --dry-run, --with-moli, --force-docs.
 #   --with-statusline  cài thanh usage GLOBAL cho Claude Code + Codex (bin/usage/install.py; không đè statusLine
@@ -36,7 +36,7 @@ while [ $# -gt 0 ]; do
     --profile) PROFILE="${2:-}"; shift 2;;
     --private) PROFILE_ARGS+=(--private "${2:-}"); shift 2;;
     --dry-run|--with-moli|--force-docs|--keep-legacy-hooks) PROFILE_ARGS+=("$1"); shift;;
-    --full) WITH_SKILLS=1; WITH_WIKI=1; WITH_KNOWLEDGELIB=1; WITH_RTK=1; shift;;   # đủ 4 trụ: harness + skills + llmwiki + knowledgelib
+    --full) WITH_SKILLS=1; WITH_WIKI=1; WITH_RTK=1; shift;;   # KnowledgeLib là tuỳ chọn, KHÔNG thuộc --full
     -*) echo "tham số lạ: $1" >&2; exit 1;;
     *) ROOT="$1"; shift;;
   esac
@@ -403,11 +403,11 @@ fi
 if [ "$WITH_KNOWLEDGELIB" = 1 ]; then
   log  "  4. KnowledgeLib ✓ nối (R19–R21)  (GLOBAL ~/.claude.json, On-Demand RAG, dùng chung mọi repo)"
 else
-  warn "  4. KnowledgeLib — BỎ QUA         → thêm cờ --with-knowledgelib (hoặc --full)"
+  log  "  4. KnowledgeLib — tuỳ chọn, chưa bật (R19 im lặng) → thêm --with-knowledgelib nếu có kho"
 fi
 
-if [ "$WITH_SKILLS" = 0 ] || [ "$WITH_WIKI" = 0 ] || [ "$WITH_KNOWLEDGELIB" = 0 ]; then
-  warn "  ► Muốn CẢ 4 trụ trong 1 lệnh: chạy lại với  --full"
+if [ "$WITH_SKILLS" = 0 ] || [ "$WITH_WIKI" = 0 ]; then
+  warn "  ► Muốn skills + wiki + rtk trong 1 lệnh: chạy lại với  --full"
 fi
 log    "═════════════════════════════════════════"
 echo "   • Claude: mở session mới (hoặc /hooks reload) để hook có hiệu lực."

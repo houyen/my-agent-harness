@@ -171,11 +171,31 @@ def m_docs():
     return 0
 
 
+def _knowledgelib_available():
+    """KnowledgeLib tuỳ chọn: có khi MCP đã đăng ký (~/.claude.json) hoặc KNOWLEDGELIB_HOME trỏ tới kho thật.
+    HARNESS_KNOWLEDGELIB=off ép tắt, =on ép bật (dùng cho test/CI)."""
+    flag = (os.environ.get("HARNESS_KNOWLEDGELIB") or "").lower()
+    if flag in ("off", "0", "false"):
+        return False
+    if flag in ("on", "1", "true"):
+        return True
+    home = os.environ.get("KNOWLEDGELIB_HOME")
+    if home and os.path.isfile(os.path.join(os.path.expanduser(home), "src", "mcp_server.py")):
+        return True
+    try:
+        cfg = json.load(open(os.path.expanduser("~/.claude.json")))
+        return "knowledgelib" in (cfg.get("mcpServers") or {})
+    except Exception:
+        return False
+
+
 def m_knowledgelib():
     """R19 knowledgelib-nudge: mỗi N prompt, nhắc agent tra KnowledgeLib (MCP global,
     dùng chung mọi repo) trước khi tự bịa cho câu hỏi domain-knowledge. Không chặn.
     Nguyên tắc: KnowledgeLib là dữ liệu tham khảo/nền tảng, AI chủ động bổ sung kiến thức."""
     every = int(os.environ.get("LLMWIKI_KNOWLEDGELIB_GATE_EVERY", "5") or 5)
+    if not _knowledgelib_available():
+        return 0  # KnowledgeLib là tuỳ chọn: chưa cài thì im lặng, không nhắc gọi tool không tồn tại
     try:
         p = os.path.join(_audit_dir(), ".knowledgelib-gate.json")
         try:

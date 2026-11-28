@@ -44,8 +44,12 @@ rules:
     blocking: false
 
   # ── KnowledgeLib bridge (T2 2026-09-17) ─────────────────────────────────
+  # R19–R21 là TUỲ CHỌN (optional: true): KnowledgeLib không phải điều kiện để dùng harness.
+  # Chưa cài (không có MCP `knowledgelib` trong ~/.claude.json, không có KNOWLEDGELIB_HOME) thì R19 im lặng,
+  # R21 bỏ qua, R20 chỉ chạy khi repo có thư mục self-docs/. Bật bằng `install.sh --with-knowledgelib`.
   knowledgelib_nudge:
     id: R19
+    optional: true
     name: knowledgelib-nudge
     kind: hook_event
     statement: "Mỗi N prompt (default 5): nhắc agent cân nhắc gọi MCP tool knowledgelib_search khi gặp câu hỏi domain-knowledge. NGUYÊN TẮC: KnowledgeLib là dữ liệu user đã làm qua, dùng làm nền và tài liệu tham khảo, KHÔNG phụ thuộc tuyệt đối (có thể là kiến thức cơ bản hoặc đã cũ) — AI PHẢI chủ động đối chiếu và bổ sung thêm kiến thức hiện đại, chuyên sâu của AI. Báo cáo, không chặn."
@@ -60,6 +64,7 @@ rules:
   # ── KnowledgeLib self-docs canonical & auto-sync (Phase 7) ──────────────
   self_docs_canonical:
     id: R20
+    optional: true
     name: self-docs-canonical
     kind: require_frontmatter
     statement: "Tài liệu trong self-docs/ phải tuân thủ chuẩn Canonical KnowledgeLib: có frontmatter gồm 6 trường [id, canonical_question, aliases, entity_type, domain, last_verified] và body không rỗng."
@@ -100,6 +105,7 @@ rules:
 
   self_docs_sync:
     id: R21
+    optional: true
     name: self-docs-sync
     kind: hook_event
     statement: "Tự động trích xuất và đồng bộ file self-docs/ sang KnowledgeLib tập trung khi kết thúc phiên hoặc lưu tài liệu. Báo cáo, không chặn."

@@ -60,6 +60,14 @@ python3 "$CLI" path "$PD/self-docs/x.md" >/dev/null 2>&1;                    ass
 
 # ── K. R22 orca_browser_only (harness-events.py browser-guard, block=2) ──
 EV="bin/harness-events.py"
+# ── K0. R19 knowledgelib-nudge là TUỲ CHỌN: im lặng khi chưa cài, nhắc khi bật ──
+kt=$(mktemp -d); HOME_KL="$kt/home"; mkdir -p "$HOME_KL"
+kl(){ ( cd "$kt" && HOME="$HOME_KL" HARNESS_KNOWLEDGELIB="$1" LLMWIKI_KNOWLEDGELIB_GATE_EVERY=1 CLAUDE_PROJECT_DIR="$kt" python3 "$OLDPWD/$EV" knowledgelib </dev/null 2>&1 ); }
+assert 0 "R19: chưa cài KnowledgeLib → không in nhắc" "$(kl off | grep -c 'knowledgelib-nudge')"
+assert 0 "R19: không cờ, không ~/.claude.json, không KNOWLEDGELIB_HOME → không in nhắc" "$(kl '' | grep -c 'knowledgelib-nudge')"
+assert 1 "R19: HARNESS_KNOWLEDGELIB=on → có nhắc" "$(kl on | grep -c 'knowledgelib-nudge')"
+rm -rf "$kt"
+
 bg(){ printf '%s' "$1" | python3 "$EV" browser-guard >/dev/null 2>&1; }
 bg '{"tool_name":"Bash","tool_input":{"command":"open https://example.com"}}';                     assert 2 "R22: open <url> bị chặn" $?
 bg '{"tool_name":"Bash","tool_input":{"command":"open -a \"Google Chrome\" https://x.io"}}';       assert 2 "R22: open -a Chrome bị chặn" $?
