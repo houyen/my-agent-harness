@@ -36,3 +36,11 @@ Skill đạt khi nêu được **ít nhất 9 trong 12 mục** dưới đây, v�
 ## Kết quả bàn giao sang `/ba-test-design`
 
 Thử với phần undo/redo: tham số `Hành động liền trước` (chưa có nước đi, di chuyển khối, undo, redo), `Mục menu thử` (Undo, Redo), `Độ sâu lịch sử` (0, 1, 1000, 1001, 10000): 20 dòng thay cho 40 tổ hợp. Các dòng độ sâu 1001 và 10000 có kết quả mong đợi **chưa rõ** vì mục 1 ở trên chưa được chốt. Đó là hành vi mong muốn của skill.
+
+## Kết quả phiên độc lập (2026-11-28, `claude -p`, chỉ có quyền Read/Write/Glob/Grep)
+
+Phiên mới đọc bản văn bản của SRS (`srs.txt`, rút từ XML). Độ mơ hồ 47%, dừng và hỏi; vẫn ghi bản nháp đánh dấu "CHƯA BÀN GIAO".
+
+Phát hiện khoảng 11/12 lỗi trong thang chấm (các mục 1 đến 11; mục 12 về vị trí và định dạng tệp thống kê không thấy nêu rõ), vượt ngưỡng 9. Nó còn nêu thêm lỗi khác (lề 0.1x so với 0.05x, thiếu "ván mới", hiển thị giờ không có yêu cầu), tôi chưa kiểm từng lỗi thêm này với nguồn.
+
+Hạn chế: bản nháp dài (khoảng 29 KB, 37 FR, 24 câu hỏi mở); nó thay tên và email tác giả trong cửa sổ About bằng chỗ giữ chỗ, hơi thừa với một tài liệu công khai.

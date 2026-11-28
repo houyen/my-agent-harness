@@ -56,6 +56,11 @@ The remaining skills are vendored from their ORIGINAL upstream (not via the repo
 
 - `po-prioritize` (self-authored, 2026-11-28): RICE, WSJF and MoSCoW are public methods; no third-party text or code. `scripts/score.py` is original.
 
+- Added 2026-11-28, from <https://github.com/anthropics/knowledge-work-plugins> at commit `5e504ae11498f2b8daa30d86b7dab97b2ecd8092`
+  (`data/skills/`, Apache License 2.0; license text is the same as the Caveman section below):
+  - `validate-data` — modified 2026-11-28: removed the reference to the missing `CONNECTORS.md`; added `disable-model-invocation: true` to the frontmatter.
+  - `statistical-analysis` — unmodified.
+
 Each section below reproduces the license that applies to its component.
 
 ---

@@ -33,3 +33,13 @@ tuân thủ yêu cầu tìm nguyên nhân trước và duyệt mọi lời nhắ
 - Mục 9: chỉ được một phần (câu hỏi "khi nào gỡ banner" ra nhờ bước kiểm "mỗi quy trình có trạng thái kết thúc", còn "hiện ở màn hình nào" thì không).
 
 Đã vá bằng cách thêm loại "việc cần làm" và "quyết định chưa chốt" vào bước 2, quy tắc "quy trình không phải FR", và gợi ý hỏi nơi hiển thị. Chạy lại tay (cũng do chính tôi, không phải phiên độc lập) đạt 9/9; cần một phiên mới chạy bài này để xác nhận.
+
+## Kết quả phiên độc lập (2026-11-28, `claude -p`, chỉ có quyền Read/Write/Glob/Grep)
+
+Chạy trong thư mục chỉ có `transcript.txt`, bằng một phiên Claude Code mới, không liên quan phiên viết skill.
+
+- **Lần 1:** đạt 8/9, mục 4 đạt một phần: viết "Compliance duyệt trước khi phát hành" thành `FR-2` dù skill đã dặn là quy tắc quy trình. Độ mơ hồ 63%, dừng và hỏi đúng.
+- **Đã vá** quy tắc: không viết thành FR **kể cả khi công cụ cưỡng chế được**; nếu có vẻ cần thì thêm câu hỏi mở.
+- **Lần 2 (sau vá, phiên mới):** quy tắc duyệt nằm ở ràng buộc và có câu hỏi mở Q8 "có cần hệ thống cưỡng chế không"; tên người thay bằng vai trò; đủ 9/9 với một lưu ý: `FR-1` vẫn chép câu "khách nên xem danh sách giao dịch" mà tuân thủ đang cấm ngụ ý, dù mâu thuẫn đó đã được nêu ở ràng buộc, `AC-1.2` và câu hỏi Q7. Độ mơ hồ 80%, dừng và hỏi.
+
+Một phiên mỗi lần, chưa lặp nhiều lần để đo độ ổn định.
