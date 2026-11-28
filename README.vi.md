@@ -25,6 +25,19 @@ Cờ:
 - `--full` — bật --with-wiki --with-skills --with-rtk. KnowledgeLib là **tuỳ chọn**, không thuộc `--full`: chỉ thêm `--with-knowledgelib` khi có kho (không có thì R19 im lặng, R21 không làm gì)
 - `--with-statusline` — cài thanh usage GLOBAL cho Claude Code + Codex (xem mục dưới; không thuộc `--full`)
 
+## Các phần ghép với nhau thế nào
+
+Một bộ harness, bốn lớp. Mỗi lớp chạy được khi thiếu các lớp bên dưới.
+
+| Lớp | Gồm | Nằm ở | Cần |
+|---|---|---|---|
+| 1. Policy | Một `policy.yaml` sinh wiring (hook, CI, pre-commit) và các rule R4, R8, R20, R22 chặn thật | `policy.yaml`, `gen-converters.py`, `out/` | không cần gì thêm |
+| 2. Skills | 45 skill, cài offline, có checksum, nguồn gốc ở `skills/NOTICE.md` | `skills/` | không bắt buộc lớp 1 |
+| 3. Hồ sơ máy | Cấu hình `~/.claude`, symlink skill, danh sách công cụ; kiểm bằng `profile.py` và `harness-doctor.py` | `profiles/personal/` | lớp 1 và 2 |
+| 4. Tuỳ chọn thêm | KnowledgeLib (R19-R21), thanh usage, repo riêng cho memory dự án | `--with-knowledgelib`, `--with-statusline`, `--private` | không ép buộc |
+
+Các harness mã nguồn mở khác (superpowers, ECC, addyosmani/agent-skills, Trellis) làm thế nào và ta học được gì: [docs/EXTERNAL-HARNESSES.md](docs/EXTERNAL-HARNESSES.md).
+
 ## Skill đi kèm (`skills/`)
 
 45 skill đi kèm repo, **cài offline, không phụ thuộc nguồn ngoài**. Nguồn gốc và giấy phép từng cái nằm ở `skills/NOTICE.md`.
@@ -210,6 +223,7 @@ bash test-rules.sh     # rules-pull (kể cả verdict standard / with_local_ove
 bash test-propose.sh   # rules-propose
 bash test-usage.sh     # 44 case: thanh usage (lõi, vỏ Claude, vỏ Codex MCP, installer)
 bash test-doctor.sh    # chẩn đoán chỉ đọc, JSON và mã thoát
+bash test-skills.sh    # mọi skill: name khớp thư mục, có description, có trong NOTICE.md, checksum khớp
 ```
 
 ## Không mang theo (đặc thù dự án gốc, không vendor-neutral)

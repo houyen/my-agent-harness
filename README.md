@@ -28,6 +28,19 @@ Flags:
 
 Install is idempotent. CI and pre-commit are always installed (the vendor-neutral floor); per-vendor adapters are installed only for vendors found in the project.
 
+## How the pieces fit
+
+One harness, four layers. Each layer works without the ones below it.
+
+| Layer | What | Where | Needs |
+|---|---|---|---|
+| 1. Policy | One `policy.yaml` generates the wiring (hooks, CI, pre-commit) and the rules R4, R8, R20, R22 that actually guard | `policy.yaml`, `gen-converters.py`, `out/` | nothing else |
+| 2. Skills | 45 skills, offline install, checksummed, provenance in `skills/NOTICE.md` | `skills/` | layer 1 is not required |
+| 3. Machine profile | `~/.claude` settings, skill symlinks, tool list; checked by `profile.py` and `harness-doctor.py` | `profiles/personal/` | layers 1 and 2 |
+| 4. Optional add-ons | KnowledgeLib (R19-R21), usage statusline, a private repo for project memory | `--with-knowledgelib`, `--with-statusline`, `--private` | nothing is forced |
+
+How other open-source harnesses (superpowers, ECC, addyosmani/agent-skills, Trellis) are built, and what we could learn from them: [docs/EXTERNAL-HARNESSES.md](docs/EXTERNAL-HARNESSES.md) (Vietnamese).
+
 ## Bundled skills (`skills/`)
 
 45 skills ship with the repo and install **offline, with no external source**. Origin and license of each are in `skills/NOTICE.md`.
@@ -209,6 +222,7 @@ bash test-rules.sh     # rules-pull (including the standard / with_local_overrid
 bash test-propose.sh   # rules-propose
 bash test-usage.sh     # 44 cases: usage statusline (core, Claude shell, Codex MCP shell, installer)
 bash test-doctor.sh    # read-only diagnostics, JSON, and exit codes
+bash test-skills.sh    # every skill: name matches folder, has description, listed in NOTICE.md, checksums match
 ```
 
 ## Not included (specific to the original project, not vendor-neutral)
